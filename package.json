@@ -1,17 +1,19 @@
 {
-  "name": "shadow-md-whatsapp",
+  "name": "shadow-md-pairing",
   "version": "1.0.0",
-  "description": "SHADOW MD WhatsApp Bot",
+  "description": "Shadow MD - WhatsApp Bot with phone-number pairing",
   "main": "src/index.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/server.js",
+    "standalone": "node src/index.js",
+    "test": "node --test"
   },
   "keywords": [
     "whatsapp",
     "bot",
-    "shadow-md",
-    "baileys"
+    "baileys",
+    "pairing-code"
   ],
   "author": "SHADOW MD",
   "license": "MIT",
@@ -19,12 +21,14 @@
     "@whiskeysockets/baileys": "^7.0.0-rc.9",
     "chalk": "^4.1.2",
     "dotenv": "^16.4.5",
+    "ffmpeg-static": "^5.3.0",
     "js-confuser": "^1.7.3",
+    "node-webpmux": "^3.2.1",
     "pino": "^9.3.2",
     "qrcode-terminal": "^0.12.0",
-    "express": "^4.21.2"
+    "sharp": "^0.34.5"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }
