@@ -103,11 +103,11 @@ function wipeSessionFiles(sessionId) {
     }
 }
 
-/** True when auth files on disk belong to a number that finished pairing (creds.me exists). */
+/** True when auth files on disk belong to a number that finished pairing. creds.me alone is set as soon as a code is requested, so check creds.account (only written after WhatsApp confirms the link). */
 function isPaired(sessionId) {
     try {
         const creds = JSON.parse(fs.readFileSync(path.join(authDir(sessionId), 'creds.json'), 'utf8'));
-        return !!creds.me;
+        return !!(creds.me && creds.account);
     } catch {
         return false;
     }
@@ -190,7 +190,7 @@ async function startSession(sessionId, opts = {}) {
     }
 
     const { state, saveCreds } = await useMultiFileAuthState(authDir(sessionId));
-    const { version } = await fetchLatestBaileysVersion();
+    const version = await waVersion(); // never let a failed version lookup stop a (re)connect
     if (generations.get(sessionId) !== gen) return null; // removed while we were awaiting
 
     const settings = createSessionSettings(sessionId, config.prefix);
@@ -220,7 +220,7 @@ async function startSession(sessionId, opts = {}) {
     activeSessions.set(sessionId, entry);
 
     const creds = sock.authState.creds;
-    if (!creds.registered && !creds.me && pairingNumber) {
+    if (!creds.registered && !creds.account && pairingNumber) {
         setTimeout(async () => {
             if (entry.stopping || entry.wiped) return;
             try {
@@ -282,7 +282,7 @@ async function startSession(sessionId, opts = {}) {
             }
 
             // 2) closed before the number was ever linked (code expired / never entered): drop the leftovers
-            if (!sock.authState.creds.me && !restartRequired) {
+            if (!sock.authState.creds.account && !restartRequired) {
                 entry.wiped = true;
                 retries.delete(sessionId);
                 wipeSessionFiles(sessionId);
