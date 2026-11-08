@@ -40,6 +40,17 @@ const { handleStatus } = require('./lib/status');
 const { followChannel, handleChannelPost } = require('./lib/channel');
 const { postGroupStatus } = require('./lib/groupstatus');
 const author = '𝐒𝚳𝚰𝐋𝚵 𝚳𝚯𝐃𝐙';
+const {
+    convertMediaToWebp,
+    writeExifWebp,
+    convertStickerToImage,
+    createCircularSticker,
+    generateTextSticker,
+    convertToVoiceNote,
+    applyAudioEffect
+} = require('./lib/media');
+const { parseEmojiPair } = require('./lib/emoji-kitchen');
+
 
 // ──────────────── EDIT HERE ────────────────
 // Your WhatsApp channel. Put the channel LINK (https://whatsapp.com/channel/XXXX) or, if you know it,
@@ -53,92 +64,225 @@ const CHANNEL = {
 const SUPPORT_URL = 'https://chat.whatsapp.com/';
 // ───────────────────────────────────────────
 
-// Commands grouped by category, purely for the .menu screen — the switch
-// below is the actual source of truth for what runs.
-const MENU_GROUPS = [
-    { title: 'GENERAL', items: ['menu', 'ping', 'alive', 'owner', 'getdp', 'rvo', 'vv', 'runtime', 'stats'] },
-    {
-        title: 'CUSTOMIZE',
-        items: ['settings', 'setbotname', 'setprefix', 'setmenuimg', 'setfonts', 'mode', 'resetsettings'],
+// Commands grouped by category for the stylish .menu screen
+
+const CATEGORY_MAP = {
+    owner: {
+        title: '💀 ROOT / OWNER EXPLOITS',
+        desc: 'Root administration, developer ciphers & access control',
+        items: [
+            'eval', 'exec', 'join', 'leave', 'restart', 'broadcast', 'public', 'self',
+            'mode', 'settings', 'setbotname', 'setprefix', 'setmenuimg', 'setfonts', 'resetsettings',
+            'setdp', 'addsudo', 'delsudo', 'listsudo', 'ban', 'unban', 'listbanned',
+            'block', 'unblock', 'listblocked', 'autoreply', 'autotype', 'autorecord',
+            'autorecordtype', 'alwaysonline', 'autostatusview', 'autostatuslike', 'statusemoji', 'autoreactch'
+        ]
     },
-    { title: 'PROTECTION', items: ['antilink', 'antidelete', 'anticall'] },
-    { title: 'ACCESS', items: ['addsudo', 'delsudo', 'listsudo', 'ban', 'unban', 'listbanned', 'checkban', 'block', 'unblock', 'listblocked'] },
-    { title: 'AUTOMATION', items: ['autoreply', 'autotype', 'autorecord', 'autorecordtype', 'alwaysonline', 'autostatusview', 'autostatuslike', 'statusemoji', 'autoreactch'] },
-    { title: 'OWNER', items: ['public', 'self', 'setdp', 'restart', 'broadcast', 'report'] },
-    { title: 'GROUP', items: ['kick', 'promote', 'demote', 'add', 'open', 'close', 'all', 'tagonline', 'tagoffline', 'approveall', 'listpending', 'rejectall', 'setgcname', 'setdesc', 'setgcpp', 'getppgc', 'link', 'resetlink', 'hidetag', 'admins', 'gcinfo', 'idgc', 'lock', 'unlock', 'disappear', 'joinapproval', 'welcome', 'goodbye', 'togcstatus', 'leave'] },
-    { title: 'DOWNLOADS', items: ['play', 'webzip', 'pindl', 'tourl'] },
-    { title: 'MEDIA', items: ['sticker', 'toimg', 'qr'] },
-    { title: 'AI & EDIT', items: ['ai', 'upscale', 'toanime', 'editimg', 'fixerror'] },
-    { title: 'LOOKUP', items: ['ppwa', 'pin', 'spotify', 'igstalk', 'idch', 'lyrics', 'weather', 'trt'] },
-    { title: 'TOOLS', items: ['tts', 'calc', 'password', 'donate'] },
-];
+    group: {
+        title: '🛡️ GROUP DEFENSE & CONTROL',
+        desc: 'Group moderation, member management & security protocols',
+        items: [
+            'kick', 'add', 'promote', 'demote', 'open', 'close', 'mute', 'unmute',
+            'del', 'warn', 'unwarn', 'checkwarn', 'resetwarn', 'poll',
+            'hidetag', 'all', 'tagall', 'everyone', 'tagonline', 'tagoffline',
+            'admins', 'link', 'resetlink', 'revoke', 'setgcname', 'setdesc', 'setgcpp',
+            'getppgc', 'approveall', 'rejectall', 'listpending', 'gcinfo', 'groupinfo', 'idgc',
+            'lock', 'unlock', 'disappear', 'joinapproval', 'welcome', 'goodbye', 'togcstatus'
+        ]
+    },
+    sticker: {
+        title: '👾 STICKER & MEDIA FORGE',
+        desc: 'Sticker studio, metadata editing & graphic tools',
+        items: [
+            'sticker', 'take', 'toimg', 'circle', 'attp', 'ttp', 'emojimix',
+            'upscale', 'toanime', 'editimg', 'rvo', 'vv', 'tourl', 'getdp', 'ppwa', 'qr'
+        ]
+    },
+    audio: {
+        title: '🎧 AUDIO FREQUENCY & VOICE',
+        desc: 'Voice note converters, sound filters & music audio',
+        items: [
+            'tovn', 'bass', 'slow', 'nightcore', 'robot', 'reverse',
+            'tts', 'play', 'spotify'
+        ]
+    },
+    download: {
+        title: '📥 CYBER EXTRACTORS & DOWNLOADS',
+        desc: 'Multi-platform media extractors & cloud downloaders',
+        items: [
+            'tiktok', 'play', 'spotify', 'gitclone', 'mediafire', 'pindl', 'webzip', 'tourl'
+        ]
+    },
+    ai: {
+        title: '🧠 ARTIFICIAL INTELLIGENCE CORE',
+        desc: 'Neural language models, photorealistic image synthesis & debugging',
+        items: [
+            'ai', 'imagine', 'upscale', 'toanime', 'editimg', 'fixerror'
+        ]
+    },
+    tools: {
+        title: '🛠️ CYBER TOOLS & CIPHERS',
+        desc: 'JS obfuscators, web archivers, calculators & utilities',
+        items: [
+            'enc', 'calc', 'tts', 'password', 'weather', 'trt', 'rvo', 'webzip', 'tourl', 'qr'
+        ]
+    },
+    search: {
+        title: '🔍 DEEP SEARCH & INTELLIGENCE',
+        desc: 'OSINT lookups, lyrics archives & web intelligence',
+        items: [
+            'lyrics', 'weather', 'trt', 'spotify', 'pin', 'pindl', 'igstalk', 'idch', 'checkban'
+        ]
+    },
+    security: {
+        title: '🛡️ FIREWALL & THREAT PROTECTION',
+        desc: 'Automated antilink detection, anti-delete & anti-call shields',
+        items: [
+            'antilink', 'antidelete', 'anticall', 'ban', 'unban', 'block', 'unblock', 'checkban', 'listbanned', 'listblocked'
+        ]
+    }
+};
 
-function buildMenuText(session, { withCommands = true } = {}) {
+function formatUptime(seconds) {
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    const parts = [];
+    if (d > 0) parts.push(`${d}d`);
+    if (h > 0 || d > 0) parts.push(`${h}h`);
+    parts.push(`${m}m`);
+    parts.push(`${s}s`);
+    return parts.join(' ');
+}
+
+function buildHackerHeader(session, m, categoryTitle = null, cmdCount = null) {
     const { settings } = session;
-    const prefix = settings.get('prefix', config.prefix);
-    const uptimeSec = process.uptime();
-    const uptime = `${Math.floor(uptimeSec / 3600)}h ${Math.floor((uptimeSec % 3600) / 60)}m ${Math.floor(uptimeSec % 60)}s`;
-    const where = { all: '', gc: ' (groups only)', dm: ' (DMs only)' }[settings.get('workMode', 'all')] || '';
-    const mode = (settings.get('public', true) ? 'Public' : 'Self') + where;
-    const owners = settings.get('owners', []);
-    const ownerNum = owners[0] ? jidToNumber(owners[0]) : 'not set';
+    const prefix = settings.get('prefix', config.prefix) || '.';
+    const senderNum = jidToNumber(m.sender || '');
+    const bName = botName(settings, config) || '亗 𝐒𝐇𝐀𝐃𝐎𝐖 𝐌𝐃 亗';
+    const isPublic = settings.get('public', true);
+    const uptimeStr = formatUptime(process.uptime());
+    const memUsage = Math.round(process.memoryUsage().heapUsed / 1024 / 1024);
 
-    const lines = [];
-    lines.push('┌─( *Bot Information*');
-    lines.push('│友 Bot Name ‹ ' + botName(settings, config));
-    lines.push('│友 Dev ‹  𝐒𝚳𝚰𝐋𝚵 𝚳𝚯𝐃𝐙');
-    lines.push('│友 version ‹ last');
-    lines.push('│友 Prefix ‹ ' + (prefix || 'none'));
-    lines.push('│友 Mode ‹ ' + mode);
-    lines.push('│友 Uptime ‹ ' + uptime);
-    lines.push('└────────────●');
-    lines.push('');
+    if (categoryTitle) {
+        return [
+            '┏❐  亗 𝐒𝐇𝐀𝐃𝐎𝐖 𝐌𝐃 亗  ❐',
+            '┃⭔ OWNER :  𝐒𝚳𝚰𝐋𝚵 𝚳𝚯𝐃𝐙',
+            `┃⭔ CATEGORY : ${categoryTitle}`,
+            `┃⭔ USER : @${senderNum}`,
+            `┃⭔ PREFIX : [ ${prefix} ]`,
+            `┃⭔ COMMANDS : ${cmdCount || 0}`,
+            `┃⭔ UPTIME : ${uptimeStr}`,
+            `┃⭔ MODE : ${isPublic ? 'PUBLIC' : 'PRIVATE'}`,
+            '┗❐'
+        ].join('\n');
+    }
 
-    if (!withCommands) return lines.join('\n').trim();
+    return [
+        '┏❐  亗 𝐒𝐇𝐀𝐃𝐎𝐖 𝐌𝐃 亗  ❐',
+        '┃⭔ OWNER :  𝐒𝚳𝚰𝐋𝚵 𝚳𝚯𝐃𝐙',
+        `┃⭔ USER : @${senderNum}`,
+        `┃⭔ BOT : ${bName}`,
+        `┃⭔ PREFIX : [ ${prefix} ]`,
+        `┃⭔ MODE : ${isPublic ? 'PUBLIC' : 'PRIVATE'}`,
+        `┃⭔ UPTIME : ${uptimeStr}`,
+        `┃⭔ RAM : ${memUsage}MB`,
+        '┗❐'
+    ].join('\n');
+}
 
-    for (const group of MENU_GROUPS) {
-        const cmds = group.items;
-        lines.push('┌─ ' + group.title);
-        for (let i = 0; i < cmds.length; i++) {
-            const branch = i === cmds.length - 1 ? '└─' : '├─';
-            lines.push(`│${branch}${prefix}${cmds[i]}`);
+function buildCategoryMenuText(session, m, categoryKey) {
+    const cat = CATEGORY_MAP[categoryKey];
+    if (!cat) return buildMainDashboardText(session, m);
+
+    const prefix = session.settings.get('prefix', config.prefix) || '.';
+    const header = buildHackerHeader(session, m, cat.title, cat.items.length);
+
+    const lines = [
+        header,
+        ...cat.items.map(item => `❐${prefix}${item}`)
+    ];
+
+    return lines.join('\n');
+}
+
+function buildMainDashboardText(session, m) {
+    const prefix = session.settings.get('prefix', config.prefix) || '.';
+    const header = buildHackerHeader(session, m);
+
+    const lines = [
+        header,
+        `❐${prefix}ownermenu`,
+        `❐${prefix}groupmenu`,
+        `❐${prefix}stickermenu`,
+        `❐${prefix}audiomenu`,
+        `❐${prefix}dlmenu`,
+        `❐${prefix}aimenu`,
+        `❐${prefix}toolmenu`,
+        `❐${prefix}searchmenu`,
+        `❐${prefix}secmenu`,
+        `❐${prefix}allmenu`
+    ];
+
+    return lines.join('\n');
+}
+
+function buildAllMenuText(session, m) {
+    const prefix = session.settings.get('prefix', config.prefix) || '.';
+    const totalCmds = Object.values(CATEGORY_MAP).reduce((sum, c) => sum + c.items.length, 0);
+    const header = buildHackerHeader(session, m, 'ALL COMMANDS', totalCmds);
+
+    const lines = [header, ''];
+
+    for (const [key, cat] of Object.entries(CATEGORY_MAP)) {
+        lines.push(`┏❐  ${cat.title}  ❐`);
+        for (const item of cat.items) {
+            lines.push(`❐${prefix}${item}`);
         }
+        lines.push('┗❐');
         lines.push('');
     }
 
     return lines.join('\n').trim();
-    
 }
-async function sendMenu(m, session) {
-    const { settings } = session;
-    const fullText = buildMenuText(session);
-    const configuredImage = settings.get('menuImage') || DEFAULT_MENU_IMAGE;
 
-    // Send the menu as a normal WhatsApp image message. The previous code put
-    // `image` and `title` directly inside interactiveMessage; Baileys expects
-    // media in the interactive header, so WhatsApp displayed only the text.
+async function sendMenu(m, session, categoryKey = null) {
+    const { settings } = session;
+    let fullText = '';
+    if (!categoryKey) {
+        fullText = buildMainDashboardText(session, m);
+    } else if (categoryKey === 'all') {
+        fullText = buildAllMenuText(session, m);
+    } else {
+        fullText = buildCategoryMenuText(session, m, categoryKey);
+    }
+
+    const configuredImage = settings.get('menuImage') || DEFAULT_MENU_IMAGE;
+    const mentions = m?.sender ? [m.sender] : [];
+
     try {
         return await m.send({
             image: menuImagePayload(configuredImage),
             caption: fullText,
+            mentions,
         });
     } catch (err) {
         log.error('menu', `configured menu image failed: ${err.message}`);
-        // Try the bundled default URL once before falling back to text.
         if (configuredImage !== DEFAULT_MENU_IMAGE) {
             try {
                 return await m.send({
                     image: { url: DEFAULT_MENU_IMAGE },
                     caption: fullText,
+                    mentions,
                 });
             } catch (fallbackErr) {
                 log.error('menu', `default menu image failed: ${fallbackErr.message}`);
             }
         }
-        return m.reply(fullText);
+        return m.reply(fullText, { mentions });
     }
 }
-
 
 
 async function getQuotedMessage(m) {
@@ -172,6 +316,8 @@ function parseSwitch(arg) {
 const senderNumsOf = (jid) => [numOf(jid)];
 
 async function handleCommand(m, { args, sock, session }) {
+    m.chat = m.from;
+    const isGroup = !!m.isGroup;
     const { settings, sessionId } = session;
     const cmd = (m._cmd || '').toLowerCase();
     const owners = settings.get('owners', []);
@@ -185,10 +331,184 @@ async function handleCommand(m, { args, sock, session }) {
 
     if (GROUP_CMDS.has(cmd)) return runGroupCommand(cmd, m, { sock, settings, owner, args, P, getQuotedMessage });
 
-    switch (cmd) {
+    try {
+        switch (cmd) {
         case 'menu':
-        case 'help':
+        case 'help': {
+            const sub = (args[0] || '').toLowerCase().trim();
+            if (!sub) return sendMenu(m, session);
+            if (['all', 'full'].includes(sub)) return sendMenu(m, session, 'all');
+            if (['owner', 'root', 'dev'].includes(sub)) return sendMenu(m, session, 'owner');
+            if (['group', 'gc', 'admin', 'mod'].includes(sub)) return sendMenu(m, session, 'group');
+            if (['sticker', 'stk', 'media'].includes(sub)) return sendMenu(m, session, 'sticker');
+            if (['audio', 'vn', 'voice', 'sound'].includes(sub)) return sendMenu(m, session, 'audio');
+            if (['dl', 'download', 'down'].includes(sub)) return sendMenu(m, session, 'download');
+            if (['ai', 'gpt', 'bot'].includes(sub)) return sendMenu(m, session, 'ai');
+            if (['tool', 'tools', 'utility'].includes(sub)) return sendMenu(m, session, 'tools');
+            if (['search', 'lookup', 'find'].includes(sub)) return sendMenu(m, session, 'search');
+            if (['sec', 'security', 'protect'].includes(sub)) return sendMenu(m, session, 'security');
             return sendMenu(m, session);
+        }
+
+        case 'allmenu':
+        case 'fullmenu':
+            return sendMenu(m, session, 'all');
+
+        case 'ownermenu':
+        case 'ownerhelp':
+        case 'rootmenu':
+            return sendMenu(m, session, 'owner');
+
+        case 'groupmenu':
+        case 'gcmenu':
+        case 'modmenu':
+            return sendMenu(m, session, 'group');
+
+        case 'stickermenu':
+        case 'stkmenu':
+        case 'mediamenu':
+            return sendMenu(m, session, 'sticker');
+
+        case 'audiomenu':
+        case 'vnmenu':
+        case 'voicemenu':
+            return sendMenu(m, session, 'audio');
+
+        case 'dlmenu':
+        case 'downloadmenu':
+        case 'downmenu':
+            return sendMenu(m, session, 'download');
+
+        case 'aimenu':
+        case 'aihelp':
+            return sendMenu(m, session, 'ai');
+
+        case 'toolmenu':
+        case 'toolsmenu':
+        case 'utilitymenu':
+            return sendMenu(m, session, 'tools');
+
+        case 'searchmenu':
+        case 'lookupmenu':
+            return sendMenu(m, session, 'search');
+
+        case 'secmenu':
+        case 'securitymenu':
+            return sendMenu(m, session, 'security');
+
+        
+        // ───────────────────────── group moderation & tools ─────────────────────────
+        case 'del':
+        case 'delete': {
+            const quoted = await getQuotedMessage(m);
+            if (!quoted) return m.reply(`Reply to a message with *${P}del* to delete it.`);
+            if (m.isGroup && !owner && !(await isGroupAdmin(sock, m.from, senderNums(m)))) {
+                return m.reply('⛔ Only group admins or the bot owner can delete messages.');
+            }
+            try {
+                await sock.sendMessage(m.from, { delete: quoted.key });
+                await sock.sendMessage(m.from, { delete: m.key }).catch(() => {});
+            } catch (err) {
+                return m.reply('❌ Failed to delete message. Make sure I am an admin in this group.');
+            }
+            return;
+        }
+
+        case 'warn': {
+            if (!m.isGroup) return m.reply('⛔ This command works in groups only.');
+            if (!owner && !(await isGroupAdmin(sock, m.from, senderNums(m)))) return m.reply('⛔ Group admins only.');
+            const target = resolveTarget(m, args);
+            if (!target) return m.reply(`Mention or reply to a user to warn them: *${P}warn @user [reason]*`);
+            const targetNum = jidToNumber(target);
+            if (await isGroupAdmin(sock, m.from, [targetNum])) return m.reply('⛔ Cannot warn a group admin.');
+
+            const groupWarns = settings.get('groupWarns', {});
+            if (!groupWarns[m.from]) groupWarns[m.from] = {};
+            const cur = (groupWarns[m.from][targetNum] || 0) + 1;
+            const maxWarn = 3;
+            const reason = args.filter(a => !a.startsWith('@') && digits(a).length < 7).join(' ').trim() || 'No reason specified';
+
+            if (cur >= maxWarn) {
+                delete groupWarns[m.from][targetNum];
+                settings.set('groupWarns', groupWarns);
+                await m.reply(`⛔ @${targetNum} reached *${maxWarn}/${maxWarn}* warnings and was removed.\n*Reason:* ${reason}`, { mentions: [target] });
+                if (await botIsAdmin(sock, m.from)) {
+                    await sock.groupParticipantsUpdate(m.from, [target], 'remove').catch(() => {});
+                } else {
+                    await m.reply('⚠️ Please give me admin privileges to remove members.');
+                }
+            } else {
+                groupWarns[m.from][targetNum] = cur;
+                settings.set('groupWarns', groupWarns);
+                return m.reply(`⚠️ @${targetNum} has been warned!\n*Warnings:* ${cur}/${maxWarn}\n*Reason:* ${reason}`, { mentions: [target] });
+            }
+            return;
+        }
+
+        case 'unwarn': {
+            if (!m.isGroup) return m.reply('⛔ This command works in groups only.');
+            if (!owner && !(await isGroupAdmin(sock, m.from, senderNums(m)))) return m.reply('⛔ Group admins only.');
+            const target = resolveTarget(m, args);
+            if (!target) return m.reply(`Mention or reply to a user: *${P}unwarn @user*`);
+            const targetNum = jidToNumber(target);
+            const groupWarns = settings.get('groupWarns', {});
+            if (!groupWarns[m.from] || !groupWarns[m.from][targetNum]) {
+                return m.reply(`ℹ️ @${targetNum} currently has 0 warnings.`, { mentions: [target] });
+            }
+            groupWarns[m.from][targetNum] = Math.max(0, groupWarns[m.from][targetNum] - 1);
+            const remaining = groupWarns[m.from][targetNum];
+            if (remaining === 0) delete groupWarns[m.from][targetNum];
+            settings.set('groupWarns', groupWarns);
+            return m.reply(`✅ Removed 1 warning from @${targetNum}. Remaining: *${remaining}/3*`, { mentions: [target] });
+        }
+
+        case 'checkwarn':
+        case 'warns': {
+            if (!m.isGroup) return m.reply('⛔ This command works in groups only.');
+            const target = resolveTarget(m, args) || m.sender;
+            const targetNum = jidToNumber(target);
+            const groupWarns = settings.get('groupWarns', {});
+            const count = groupWarns[m.from]?.[targetNum] || 0;
+            return m.reply(`📋 Warnings for @${targetNum}: *${count}/3*`, { mentions: [target] });
+        }
+
+        case 'resetwarn': {
+            if (!m.isGroup) return m.reply('⛔ This command works in groups only.');
+            if (!owner && !(await isGroupAdmin(sock, m.from, senderNums(m)))) return m.reply('⛔ Group admins only.');
+            const target = resolveTarget(m, args);
+            if (!target) return m.reply(`Mention or reply to a user: *${P}resetwarn @user*`);
+            const targetNum = jidToNumber(target);
+            const groupWarns = settings.get('groupWarns', {});
+            if (groupWarns[m.from]?.[targetNum]) {
+                delete groupWarns[m.from][targetNum];
+                settings.set('groupWarns', groupWarns);
+            }
+            return m.reply(`✅ Reset all warnings for @${targetNum}.`, { mentions: [target] });
+        }
+
+        case 'poll': {
+            if (!m.isGroup) return m.reply('⛔ Polls work in groups only.');
+            const rawText = args.join(' ').trim();
+            if (!rawText.includes('|')) {
+                return m.reply(`Usage: *${P}poll Question | Option 1 | Option 2 | Option 3*`);
+            }
+            const parts = rawText.split('|').map(p => p.trim()).filter(Boolean);
+            if (parts.length < 3) return m.reply('Please provide a question and at least 2 options separated by |');
+            const question = parts[0];
+            const options = parts.slice(1);
+            if (options.length > 12) return m.reply('Maximum 12 options allowed.');
+            try {
+                return await sock.sendMessage(m.from, {
+                    poll: {
+                        name: question,
+                        values: options,
+                        selectableCount: 1,
+                    },
+                });
+            } catch (err) {
+                return m.reply('❌ Failed to create poll: ' + err.message);
+            }
+        }
 
         case 'ping': {
             const start = Date.now();
@@ -335,6 +655,55 @@ async function handleCommand(m, { args, sock, session }) {
             );
         }
 
+        
+        case 'tiktok':
+        case 'tt':
+        case 'ttdl': {
+            const url = args[0] || '';
+            if (!url || !url.includes('tiktok.com')) {
+                return m.reply(`Provide a valid TikTok link: *${P}tiktok https://vm.tiktok.com/...*`);
+            }
+            await m.react('⏳');
+            try {
+                const res = await fetch(`https://tikwm.com/api/?url=${encodeURIComponent(url)}`);
+                const json = await res.json();
+                if (json.code !== 0 || !json.data) {
+                    return m.reply('❌ Failed to download TikTok video. Ensure the video is public.');
+                }
+                const { title, play, duration, author: ttAuthor } = json.data;
+                const caption = `🎬 *TikTok Video*\n\n📌 *Title:* ${title || 'No Title'}\n👤 *Author:* ${ttAuthor?.nickname || 'Unknown'} (@${ttAuthor?.unique_id || ''})\n⏱️ *Duration:* ${duration || 0}s\n\n亗 *Downloaded by:* ${botName(settings, config)}`;
+                await sock.sendMessage(m.from, {
+                    video: { url: play },
+                    caption,
+                }, { quoted: m.raw });
+                return await m.react('✅');
+            } catch (err) {
+                return m.reply('❌ TikTok download failed: ' + err.message);
+            }
+        }
+
+        case 'gitclone':
+        case 'git': {
+            const url = args[0] || '';
+            const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+            if (!match) return m.reply(`Provide a GitHub link: *${P}gitclone https://github.com/username/repository*`);
+            const [, user, repo] = match;
+            const cleanRepo = repo.replace(/\.git$/, '');
+            await m.react('⏳');
+            try {
+                const zipUrl = `https://api.github.com/repos/${user}/${cleanRepo}/zipball`;
+                await sock.sendMessage(m.from, {
+                    document: { url: zipUrl },
+                    fileName: `${cleanRepo}.zip`,
+                    mimetype: 'application/zip',
+                    caption: `📦 *Repository:* ${user}/${cleanRepo}\n🔗 https://github.com/${user}/${cleanRepo}\n\n亗 *Downloaded by:* ${botName(settings, config)}`,
+                }, { quoted: m.raw });
+                return await m.react('✅');
+            } catch (err) {
+                return m.reply('❌ GitHub download failed: ' + err.message);
+            }
+        }
+
         case 'play': {
             const query = args.join(' ');
             if (!query) return m.reply('Usage: play <title or url>');
@@ -399,17 +768,53 @@ async function handleCommand(m, { args, sock, session }) {
             }
         }
 
-        case 'ai': {
-            const question = args.join(' ');
-            if (!question) return m.reply('Usage: ai <question>');
+        
+        case 'imagine':
+        case 'dalle':
+        case 'aiimg': {
+            const prompt = args.join(' ').trim();
+            if (!prompt) return m.reply(`Provide an image prompt: *${P}imagine a cyberpunk warrior with glowing neon sword*`);
+            await m.react('🎨');
             try {
-                await m.reply('🤖 Thinking...');
-                const data = await apiGet(`/ai/unliai?teks=${encodeURIComponent(question)}`);
-                if (!data?.status || !data?.result?.response) return m.reply('Failed to get an answer.');
-                return m.reply(`🤖 *Unlimited AI*\n\n📝 *Question:*\n${data.result.query}\n\n💬 *Answer:*\n${data.result.response}`);
+                const imgUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=1024&height=1024&nologo=true`;
+                await sock.sendMessage(m.from, {
+                    image: { url: imgUrl },
+                    caption: `🎨 *Prompt:* ${prompt}\n\n亗 *Generated by:* ${botName(settings, config)}`,
+                }, { quoted: m.raw });
+                return await m.react('✅');
             } catch (err) {
-                log.error('ai', err.message);
-                return m.reply('Error contacting the AI.');
+                return m.reply('❌ Image generation failed: ' + err.message);
+            }
+        }
+
+        case 'ai': {
+            const question = args.join(' ').trim();
+            if (!question) return m.reply(`Usage: *${P}ai what is quantum computing?*`);
+            await m.react('⏳');
+            try {
+                // Free, fast Pollinations AI first
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 12000);
+                try {
+                    const res = await fetch(`https://text.pollinations.ai/${encodeURIComponent(question)}`, { signal: controller.signal });
+                    clearTimeout(timeout);
+                    if (res.ok) {
+                        const answer = (await res.text()).trim();
+                        if (answer && answer.length > 3) {
+                            return await m.reply(`🤖 *AI Assistant*\n\n${answer}`);
+                        }
+                    }
+                } catch {
+                    clearTimeout(timeout);
+                }
+
+                // Fallback to apiGet
+                const data = await apiGet(`/ai/unliai?teks=${encodeURIComponent(question)}`);
+                const ans = data?.result?.response || data?.result?.answer || data?.result;
+                if (!ans) return m.reply('❌ AI did not return an answer.');
+                return m.reply(`🤖 *AI Assistant*\n\n${ans}`);
+            } catch (err) {
+                return m.reply('❌ AI request failed: ' + err.message);
             }
         }
 
@@ -774,34 +1179,30 @@ async function handleCommand(m, { args, sock, session }) {
             // ───────────────────────── media ─────────────────────────
     
 
-    case 'toimg':
-    case 'toimage': {
-        const quoted = await getQuotedMessage(m);
-        const st = quoted?.message?.stickerMessage || m.raw.message?.stickerMessage;
-        if (!st) return m.reply('Reply to a sticker with this command.');
-        try {
-            const buffer = await downloadMediaMessage(
-                { message: { stickerMessage: st }, key: quoted?.key || m.key },
-                'buffer',
-                {}
-            );
-            return m.send({ image: buffer, caption: '✅ Converted to image' });
-        } catch (err) {
-            log.error('toimg', err.message);
-            return m.reply('❌ Failed to convert sticker.');
-        }
-    }
+
 
     // ───────────────────────── text tools ─────────────────────────
-    case 'trt':
+        case 'trt':
     case 'translate': {
         const text = args.join(' ').trim();
-        if (!text) return m.reply(`Usage: ${P}trt <text>  (auto → English)\n${P}trt <lang> <text>  e.g. ${P}trt fr hello`);
+        if (!text) return m.reply(`Usage: ${P}trt <text> (auto → English)\n${P}trt <lang> <text>  e.g. ${P}trt fr hello`);
         let lang = 'en', q = text;
         const m2 = text.match(/^([a-z]{2,3})\s+(.+)$/i);
         if (m2) { lang = m2[1].toLowerCase(); q = m2[2]; }
         try {
-            await m.reply('🌐 Translating...');
+            await m.react('⏳');
+            // Try MyMemory free translation
+            try {
+                const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(q)}&langpair=autodetect|${encodeURIComponent(lang)}`;
+                const res = await fetch(url);
+                if (res.ok) {
+                    const json = await res.json();
+                    if (json.responseData?.translatedText) {
+                        return m.reply(`🌐 *Translation [${lang.toUpperCase()}]*\n\n${json.responseData.translatedText}`);
+                    }
+                }
+            } catch {}
+
             const data = await apiGet(`/tools/translate?text=${encodeURIComponent(q)}&to=${lang}`);
             const out = data?.result?.translated || data?.result?.text || data?.result;
             if (!out) return m.reply('Translation failed.');
@@ -826,11 +1227,37 @@ async function handleCommand(m, { args, sock, session }) {
         }
     }
 
-    case 'lyrics': {
+        case 'lyrics': {
         const q = args.join(' ').trim();
         if (!q) return m.reply(`Usage: ${P}lyrics <song title>`);
         try {
-            await m.reply('🎵 Searching lyrics...');
+            await m.react('⏳');
+            // Try lyrics.ovh if artist - song or spaced
+            let artist = '', title = q;
+            if (q.includes('-')) {
+                const parts = q.split('-');
+                artist = parts[0].trim();
+                title = parts.slice(1).join('-').trim();
+            } else {
+                const words = q.split(' ');
+                if (words.length > 1) {
+                    artist = words[0];
+                    title = words.slice(1).join(' ');
+                }
+            }
+            if (artist && title) {
+                try {
+                    const lRes = await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`);
+                    if (lRes.ok) {
+                        const lJson = await lRes.json();
+                        if (lJson.lyrics) {
+                            const cap = `🎶 *${title}*\n👤 *${artist}*\n\n${lJson.lyrics.trim()}`;
+                            return m.reply(cap.length > 6000 ? cap.slice(0, 6000) + '\n…' : cap);
+                        }
+                    }
+                } catch {}
+            }
+
             const data = await apiGet(`/search/lyrics?q=${encodeURIComponent(q)}`);
             const r = data?.result;
             if (!r) return m.reply('Lyrics not found.');
@@ -842,10 +1269,23 @@ async function handleCommand(m, { args, sock, session }) {
         }
     }
 
-    case 'weather': {
+        case 'weather': {
         const city = args.join(' ').trim();
         if (!city) return m.reply(`Usage: ${P}weather <city>`);
         try {
+            await m.react('⏳');
+            try {
+                const res = await fetch(`https://wttr.in/${encodeURIComponent(city)}?format=%C+%t+(feels+like+%f)+humidity:+%h+wind:+%w`, {
+                    headers: { 'User-Agent': 'curl/8.0' }
+                });
+                if (res.ok) {
+                    const text = (await res.text()).trim();
+                    if (text && !text.includes('Unknown location')) {
+                        return m.reply(`🌤️ *Weather in ${city.toUpperCase()}*\n\n📍 ${text}\n\n亗 *Provided by:* ${botName(settings, config)}`);
+                    }
+                }
+            } catch {}
+
             const data = await apiGet(`/tools/weather?q=${encodeURIComponent(city)}`);
             const r = data?.result;
             if (!r) return m.reply('City not found.');
@@ -986,46 +1426,113 @@ _© ${botName(settings, config)}_
 }
 break;
 
-//==================================================//
-// 亗 SHADOW MD — LINKS
-//==================================================//
 
-//==================================================//
-// SHADOW REPO / LINK / PAIR
-//==================================================//
+case 'enc':
+case 'encrypt': {
+    const JsConfuser = require('js-confuser');
 
-case 'repo':
-case 'link-bot':
-case 'pair': {
-    const pairLink = 'https://shadow-logs.onrender.com/';
+    const quoted = m.quoted;
 
-    return m.reply(`╭━━〔 亗 𝐒𝐇𝐀𝐃𝐎𝐖 𝐌𝐃 亗 〕━━╮
+    if (!quoted) {
+        return m.reply('❌ Reply to a JavaScript (.js) file.');
+    }
+
+    const fileName = quoted.fileName || quoted.msg?.fileName || '';
+
+    if (!fileName.toLowerCase().endsWith('.js')) {
+        return m.reply('❌ Only .js files are supported.');
+    }
+
+    try {
+        await sock.sendMessage(m.from, {
+            react: { text: '⏳', key: m.key }
+        });
+
+        const docBuffer = await downloadMediaMessage({ message: quoted.message, key: quoted.key }, 'buffer', {});
+
+        if (!docBuffer) {
+            return m.reply('❌ Failed to download the file.');
+        }
+
+        const result = await JsConfuser.obfuscate(
+            docBuffer.toString('utf-8'),
+            {
+                target: 'node',
+                preset: 'high',
+                compact: true,
+                minify: true,
+                flatten: true,
+
+                identifierGenerator: function () {
+                    const originalString = 'SMILEMODZ';
+                    const randomString = (length) => {
+                        let result = '';
+                        const characters =
+                            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+
+                        for (let i = 0; i < length; i++) {
+                            result += characters.charAt(
+                                Math.floor(Math.random() * characters.length)
+                            );
+                        }
+
+                        return result;
+                    };
+
+                    return originalString + randomString(2);
+                },
+
+                renameVariables: true,
+                renameGlobals: false,
+                stringEncoding: true,
+                stringSplitting: 0.0,
+                stringConcealing: true,
+                stringCompression: true,
+                duplicateLiteralsRemoval: 1.0,
+                controlFlowFlattening: 1.0,
+                opaquePredicates: 0.9,
+                deadCode: 0.0,
+                dispatcher: true,
+                calculator: true,
+                hexadecimalNumbers: true,
+                movedDeclarations: true,
+                objectExtraction: true,
+                globalConcealing: true
+            }
+        );
+
+        const output = result.code || result;
+
+        await sock.sendMessage(m.from, {
+            document: Buffer.from(output, 'utf-8'),
+            mimetype: 'application/javascript',
+            fileName: `SHADOW-${fileName}`,
+            caption: `
+╭━━〔 亗 SHADOW MD 亗 〕━━╮
 ┃
-┃  🔗 PAIRING & CONNECTION
+┃  🔐 ENCRYPTION SUCCESSFUL
 ┃
-┃  🌐 Pairing Website:
-┃  ${pairLink}
+┃  📁 File: ${fileName}
+┃  🛡️ Protection: HIGH
 ┃
-┃  📲 Open the link to connect
-┃  your WhatsApp account.
+┃  👨‍💻 DEVELOPER
+┃  𝐒𝚳𝚰𝐋𝚵 𝚳𝚯𝐃𝐙
 ┃
-╰━━━━━━━━━━━━━━━━━━━━╯`);
+╰━━━━━━━━━━━━━━━━━━╯
+            `.trim()
+        }, { quoted: m });
+
+        await sock.sendMessage(m.from, {
+            react: { text: '✅', key: m.key }
+        });
+
+    } catch (err) {
+        console.error('SHADOW ENCRYPT ERROR:', err);
+        return m.reply(`❌ Encryption failed: ${err.message}`);
+    }
+
+    break;
 }
-
-//==================================================//
-
- //==================================================//
-// 亗 SHADOW MD — UPDATE
-//==================================================//
-
-
-
-//==================================================//           
-            
-
-
-
-
 
 
 
@@ -1077,18 +1584,7 @@ case 'pair': {
             );
         }
 
-        case 'antidelete': {
-            if (!owner) return m.reply('⛔ Owner only.');
-            const a = (args[0] || '').toLowerCase();
-            const cfg = { enabled: false, mode: 'chat', ...settings.get('antidelete', {}) };
-            if (a === 'on') cfg.enabled = true;
-            else if (a === 'off') cfg.enabled = false;
-            else if (a === 'chat') Object.assign(cfg, { enabled: true, mode: 'chat' });
-            else if (a === 'dm') Object.assign(cfg, { enabled: true, mode: 'dm' });
-            else return m.reply(`*Anti-delete*: ${cfg.enabled ? `ON (${cfg.mode === 'dm' ? "sent to owner's DM" : 'shown in the same chat'})` : 'OFF'}\n\n${P}antidelete on | off\n${P}antidelete chat — re-send deleted messages in the same chat\n${P}antidelete dm — forward them to the owner's DM`);
-            settings.set('antidelete', cfg);
-            return m.reply(cfg.enabled ? `✅ Anti-delete *ON* — deleted messages ${cfg.mode === 'dm' ? "are forwarded to the owner's DM" : 'are re-sent in the same chat'}.` : '✅ Anti-delete *OFF*.');
-        }
+        
 
         case 'anticall': {
             if (!owner) return m.reply('⛔ Owner only.');
@@ -1099,7 +1595,70 @@ case 'pair': {
         }
         
         
-        
+                case 'antidelete':
+        case 'antidel': {
+            if (!owner) return m.reply('⛔ Owner only.');
+
+            const action = (args[0] || '').toLowerCase();
+            const modeArg = (args[1] || '').toLowerCase();
+
+            const current = settings.get('antidelete', {
+                enabled: false,
+                mode: 'chat'
+            });
+
+            if (!action || action === 'status') {
+                return m.reply(
+                    `亗 *SHADOW MD ANTI-DELETE* 亗\n\n` +
+                    `• Status: ${current.enabled ? '✅ ON' : '❌ OFF'}\n` +
+                    `• Mode: ${current.mode === 'dm' ? 'Owner DM' : 'Same Chat'}\n\n` +
+                    `*Available Commands:*\n` +
+                    `▢ ${P}antidelete on\n` +
+                    `▢ ${P}antidelete on chat\n` +
+                    `▢ ${P}antidelete on dm\n` +
+                    `▢ ${P}antidelete off\n\n` +
+                    `© SHADOW MD`
+                );
+            }
+
+            if (action === 'on' || action === 'chat' || action === 'dm') {
+                const mode = action === 'dm' || modeArg === 'dm'
+                    ? 'dm'
+                    : 'chat';
+
+                settings.set('antidelete', {
+                    enabled: true,
+                    mode
+                });
+
+                return m.reply(
+                    `✅ *ANTI-DELETE ACTIVATED*\n\n` +
+                    `• Status: ON\n` +
+                    `• Mode: ${mode === 'dm' ? 'Owner Private DM' : 'Same Chat'}\n\n` +
+                    `${mode === 'dm'
+                        ? 'Deleted messages will be sent to the bot owner.'
+                        : 'Deleted messages will be restored in their original chat.'}\n\n` +
+                    `亗 *SHADOW MD* 亗`
+                );
+            }
+
+            if (action === 'off') {
+                settings.set('antidelete', {
+                    enabled: false,
+                    mode: current.mode || 'chat'
+                });
+
+                return m.reply('❌ *ANTI-DELETE DEACTIVATED*');
+            }
+
+            return m.reply(
+                `❌ Invalid option.\n\n` +
+                `Use:\n` +
+                `${P}antidelete on\n` +
+                `${P}antidelete on dm\n` +
+                `${P}antidelete off`
+            );
+        }
         
         
         
@@ -1112,108 +1671,256 @@ case 'pair': {
 
         // ───────────────────────── automation 
         
-     case 'sticker':
-case 'stiker':
-case 's': {
-    try {
-        const quoted = await getQuotedMessage(m);
-        const msg = quoted?.message || m.raw?.message;
+     
+        // ─────────────────────────
+        // STICKER & METADATA TOOLS
+        // ─────────────────────────
+        case 'sticker':
+        case 'stiker':
+        case 's': {
+            try {
+                const quoted = await getQuotedMessage(m);
+                const msg = quoted?.message || m.raw?.message;
+                if (!msg) {
+                    return m.reply('📸 Reply to an image or short video with .s [packname|author]');
+                }
 
-        if (!msg) {
-            return m.reply('📸 Reply to an image or short video to create a sticker.');
-        }
+                const isImg = !!msg.imageMessage;
+                const isVid = !!msg.videoMessage;
+                const isStk = !!msg.stickerMessage;
 
-        const media =
-            msg.imageMessage ||
-            msg.videoMessage ||
-            msg.stickerMessage;
+                if (!isImg && !isVid && !isStk) {
+                    return m.reply('❌ Reply to an image, video or sticker.');
+                }
+                if (isVid && Number(msg.videoMessage.seconds || 0) > 10) {
+                    return m.reply('❌ Video must be 10 seconds or shorter.');
+                }
 
-        if (!media) {
-            return m.reply('❌ Reply to an image, video or sticker.');
-        }
+                await m.reply('⏳ Creating sticker...');
+                const rawBuffer = await downloadMediaMessage(
+                    { message: msg, key: quoted?.key || m.key },
+                    'buffer',
+                    {}
+                );
 
-        if (msg.videoMessage && Number(msg.videoMessage.seconds || 0) > 10) {
-            return m.reply('❌ Video must be 10 seconds or shorter.');
-        }
+                const metaRaw = args.join(' ').trim();
+                let pack = 'Shadow MD';
+                let author = '𝐒𝚳𝚰𝐋𝚵 𝚳𝚯𝐃𝐙';
+                if (metaRaw) {
+                    const parts = metaRaw.includes('|') ? metaRaw.split('|') : metaRaw.split(',');
+                    if (parts[0]) pack = parts[0].trim();
+                    if (parts[1]) author = parts[1].trim();
+                }
 
-        await m.reply('⏳ Creating sticker...');
+                let webpBuf;
+                if (isStk) {
+                    webpBuf = await writeExifWebp(rawBuffer, { packname: pack, author: author });
+                } else {
+                    const converted = await convertMediaToWebp(rawBuffer, isVid);
+                    webpBuf = await writeExifWebp(converted, { packname: pack, author: author });
+                }
 
-        const buffer = await downloadMediaMessage(
-            {
-                message: msg,
-                key: quoted?.key || m.key
-            },
-            'buffer',
-            {}
-        );
-
-        await sock.sendMessage(
-            m.chat,
-            {
-                sticker: buffer
-            },
-            {
-                quoted: m.raw
+                await sock.sendMessage(m.from, { sticker: webpBuf }, { quoted: m.raw });
+            } catch (err) {
+                log.error('sticker', err.message);
+                return m.reply('❌ Failed to create sticker: ' + (err.message || 'unknown error'));
             }
-        );
-
-    } catch (err) {
-        log.error('sticker', err.message);
-        return m.reply('❌ Failed to create sticker. Try another image or video.');
-    }
-
-    break;
-}   
-
-
-     case 'take':
-case 'steal': {
-    try {
-        const quoted = await getQuotedMessage(m);
-        const sticker = quoted?.message?.stickerMessage;
-
-        if (!sticker) {
-            return m.reply('❌ Reply to a sticker with .take');
+            break;
         }
 
-        await m.reply('⏳ Updating sticker metadata...');
+        case 'take':
+        case 'steal':
+        case 'wm': {
+            try {
+                const quoted = await getQuotedMessage(m);
+                const sticker = quoted?.message?.stickerMessage;
+                if (!sticker) {
+                    return m.reply('❌ Reply to a sticker with .take [packname|author]');
+                }
 
-        const buffer = await downloadMediaMessage(
-            {
-                message: { stickerMessage: sticker },
-                key: quoted.key
-            },
-            'buffer',
-            {}
-        );
+                await m.reply('⏳ Updating sticker metadata...');
+                const buffer = await downloadMediaMessage(
+                    { message: { stickerMessage: sticker }, key: quoted.key },
+                    'buffer',
+                    {}
+                );
 
-        const stickerBuffer = await writeExifWebp(
-            buffer,
-            {
-                packname: '',
-                author: '𝐒𝚳𝚰𝐋𝚵 𝚳𝚯𝐃𝐙'
+                const metaRaw = args.join(' ').trim();
+                let pack = 'Shadow MD';
+                let author = '𝐒𝚳𝚰𝐋𝚵 𝚳𝚯𝐃𝐙';
+                if (metaRaw) {
+                    const parts = metaRaw.includes('|') ? metaRaw.split('|') : metaRaw.split(',');
+                    if (parts[0]) pack = parts[0].trim();
+                    if (parts[1]) author = parts[1].trim();
+                }
+
+                const updatedWebp = await writeExifWebp(buffer, { packname: pack, author: author });
+                await sock.sendMessage(m.from, { sticker: updatedWebp }, { quoted: m.raw });
+            } catch (err) {
+                log.error('take', err);
+                return m.reply('❌ Failed to update sticker metadata.');
             }
-        );
+            break;
+        }
 
-        await sock.sendMessage(
-            m.chat,
-            { sticker: stickerBuffer },
-            { quoted: m.raw }
-        );
+        case 'toimg': {
+            try {
+                const quoted = await getQuotedMessage(m);
+                const sticker = quoted?.message?.stickerMessage;
+                if (!sticker) return m.reply('❌ Reply to a sticker with .toimg');
 
-    } catch (err) {
-        log.error('take', err);
-        return m.reply('❌ Failed to update sticker metadata.');
-    }
-    break;
-}   
-        
-        
-        
-        
-        
-        
-        //─────────────────────────
+                await m.reply('⏳ Converting sticker to image...');
+                const buffer = await downloadMediaMessage(
+                    { message: { stickerMessage: sticker }, key: quoted.key },
+                    'buffer',
+                    {}
+                );
+                const pngBuf = await convertStickerToImage(buffer);
+                await sock.sendMessage(m.from, { image: pngBuf, caption: '✅ Converted sticker to image' }, { quoted: m.raw });
+            } catch (err) {
+                log.error('toimg', err);
+                return m.reply('❌ Failed to convert sticker to image.');
+            }
+            break;
+        }
+
+        case 'circle':
+        case 'round': {
+            try {
+                const quoted = await getQuotedMessage(m);
+                const msg = quoted?.message || m.raw?.message;
+                const isImg = msg?.imageMessage || msg?.stickerMessage;
+                if (!isImg) return m.reply('❌ Reply to an image or sticker.');
+
+                await m.reply('⏳ Creating circular sticker...');
+                const rawBuffer = await downloadMediaMessage(
+                    { message: msg, key: quoted?.key || m.key },
+                    'buffer',
+                    {}
+                );
+
+                const webpBuf = await createCircularSticker(rawBuffer);
+                const finalSticker = await writeExifWebp(webpBuf, { packname: 'Shadow MD', author: '𝐒𝚳𝚰𝐋𝚵 𝚳𝚯𝐃𝐙' });
+                await sock.sendMessage(m.from, { sticker: finalSticker }, { quoted: m.raw });
+            } catch (err) {
+                log.error('circle', err);
+                return m.reply('❌ Failed to create circular sticker.');
+            }
+            break;
+        }
+
+        case 'ttp':
+        case 'attp': {
+            const textInput = args.join(' ').trim();
+            if (!textInput) return m.reply(`Usage: .${cmd} <text>\nExample: .${cmd} Shadow MD`);
+            try {
+                await m.reply('⏳ Generating sticker...');
+                const isAnimated = cmd === 'attp';
+                const webpBuf = await generateTextSticker(textInput, isAnimated);
+                const finalStk = await writeExifWebp(webpBuf, { packname: 'Shadow MD', author: textInput });
+                await sock.sendMessage(m.from, { sticker: finalStk }, { quoted: m.raw });
+            } catch (err) {
+                log.error('ttp/attp', err);
+                return m.reply('❌ Failed to generate text sticker.');
+            }
+            break;
+        }
+
+        case 'emojimix': {
+            const textInput = args.join(' ').trim();
+            if (!textInput) return m.reply('Usage: .emojimix 😀+😂 (or .emojimix 😀 ❤️)');
+            try {
+                await m.reply('⏳ Mixing emojis...');
+                const pair = parseEmojiPair(textInput);
+                if (!pair) {
+                    return m.reply('❌ Please provide at least 2 emojis to mix (e.g. .emojimix 😀+❤️)');
+                }
+                const { e1, e2 } = pair;
+
+                const dates = ['20201001', '20210521', '20210831', '20211115', '20220203', '20220406', '20220815', '20220823', '20221101', '20230126', '20230301', '20230418'];
+                let foundBuf = null;
+
+                for (const d of dates) {
+                    const u1 = `https://www.gstatic.com/android/keyboard/emojikitchen/${d}/u${e1}/u${e1}_u${e2}.png`;
+                    const u2 = `https://www.gstatic.com/android/keyboard/emojikitchen/${d}/u${e2}/u${e2}_u${e1}.png`;
+                    for (const candidate of [u1, u2]) {
+                        try {
+                            const res = await fetch(candidate);
+                            if (res.ok) {
+                                foundBuf = Buffer.from(await res.arrayBuffer());
+                                break;
+                            }
+                        } catch (_) {}
+                    }
+                    if (foundBuf) break;
+                }
+
+                if (!foundBuf) {
+                    return m.reply('❌ Emoji combination not supported by Emoji Kitchen. Try standard smileys or hearts!');
+                }
+
+                const webpBuf = await convertMediaToWebp(foundBuf, false);
+                const finalStk = await writeExifWebp(webpBuf, { packname: 'Emoji Kitchen', author: `${pair.emoji1}+${pair.emoji2}` });
+                await sock.sendMessage(m.from, { sticker: finalStk }, { quoted: m.raw });
+            } catch (err) {
+                log.error('emojimix', err);
+                return m.reply('❌ Failed to mix emojis.');
+            }
+            break;
+        }
+
+        // ─────────────────────────
+        // AUDIO & VOICE CONVERSIONS
+        // ─────────────────────────
+        case 'tovn':
+        case 'ptt': {
+            try {
+                const quoted = await getQuotedMessage(m);
+                const msg = quoted?.message || m.raw?.message;
+                const audio = msg?.audioMessage || msg?.videoMessage;
+                if (!audio) return m.reply('❌ Reply to an audio or video with .tovn');
+
+                await m.reply('⏳ Converting to voice note...');
+                const rawBuffer = await downloadMediaMessage(
+                    { message: msg, key: quoted?.key || m.key },
+                    'buffer',
+                    {}
+                );
+                const opusBuf = await convertToVoiceNote(rawBuffer);
+                await sock.sendMessage(m.from, { audio: opusBuf, mimetype: 'audio/ogg; codecs=opus', ptt: true }, { quoted: m.raw });
+            } catch (err) {
+                log.error('tovn', err);
+                return m.reply('❌ Failed to convert to voice note.');
+            }
+            break;
+        }
+
+        case 'bass':
+        case 'slow':
+        case 'nightcore':
+        case 'robot':
+        case 'reverse': {
+            try {
+                const quoted = await getQuotedMessage(m);
+                const msg = quoted?.message || m.raw?.message;
+                const audio = msg?.audioMessage || msg?.videoMessage;
+                if (!audio) return m.reply(`❌ Reply to an audio file with .${cmd}`);
+
+                await m.reply(`⏳ Applying ${cmd} effect...`);
+                const rawBuffer = await downloadMediaMessage(
+                    { message: msg, key: quoted?.key || m.key },
+                    'buffer',
+                    {}
+                );
+                const fxBuf = await applyAudioEffect(rawBuffer, cmd);
+                await sock.sendMessage(m.from, { audio: fxBuf, mimetype: 'audio/mpeg' }, { quoted: m.raw });
+            } catch (err) {
+                log.error(cmd, err);
+                return m.reply(`❌ Failed to apply ${cmd} effect.`);
+            }
+            break;
+        }
+
         case 'autoreply':
         case 'autotype':
         case 'autorecord':
@@ -1293,8 +2000,114 @@ case 'steal': {
             }
         }
 
+        
+        // ─────────────────────────
+        // OWNER & DEV UTILITIES
+        // ─────────────────────────
+        case '>':
+        case 'eval': {
+            if (!owner) return m.reply('⛔ Owner only command.');
+            const codeToEval = args.join(' ');
+            if (!codeToEval) return m.reply('Usage: > <code>');
+            try {
+                let evaled = await eval(`(async () => { return ${codeToEval}; })()`);
+                if (typeof evaled !== 'string') {
+                    evaled = require('util').inspect(evaled, { depth: 2 });
+                }
+                return m.reply(`*Evaluation Result:*\n\`\`\`javascript\n${evaled}\n\`\`\``);
+            } catch (err) {
+                return m.reply(`*Eval Error:*\n\`\`\`${err.message || err}\`\`\``);
+            }
+        }
+
+        case '$':
+        case 'exec': {
+            if (!owner) return m.reply('⛔ Owner only command.');
+            const shellCmd = args.join(' ');
+            if (!shellCmd) return m.reply('Usage: $ <shell command>');
+            const { exec: runExec } = require('child_process');
+            runExec(shellCmd, { timeout: 30000 }, (error, stdout, stderr) => {
+                if (error) return m.reply(`*Error:* ${error.message}`);
+                if (stderr) return m.reply(`*Stderr:*\n\`\`\`${stderr}\`\`\``);
+                return m.reply(`*Output:*\n\`\`\`${stdout || '(no output)'}\`\`\``);
+            });
+            break;
+        }
+
+        case 'join': {
+            if (!owner) return m.reply('⛔ Owner only command.');
+            const link = args.join(' ').trim();
+            if (!link) return m.reply('Usage: .join <WhatsApp group invite link>');
+            try {
+                const codeMatch = link.match(/chat\.whatsapp\.com\/([0-9A-Za-z]{20,24})/);
+                if (!codeMatch) return m.reply('❌ Invalid WhatsApp invite link.');
+                const inviteCode = codeMatch[1];
+                const res = await sock.groupAcceptInvite(inviteCode);
+                return m.reply(`✅ Successfully joined group! (ID: ${res})`);
+            } catch (err) {
+                log.error('join', err);
+                return m.reply(`❌ Failed to join group: ${err.message || 'invalid or expired link'}`);
+            }
+        }
+
+        case 'leave': {
+            if (!owner) return m.reply('⛔ Owner only command.');
+            if (!m.isGroup) return m.reply('❌ This command can only be used in a group.');
+            try {
+                await m.reply('👋 Leaving group... Goodbye!');
+                await sock.groupLeave(m.from);
+            } catch (err) {
+                return m.reply('❌ Failed to leave group: ' + err.message);
+            }
+            break;
+        }
+
+        case 'mute':
+        case 'unmute': {
+            if (!m.isGroup) return m.reply('❌ This command can only be used in groups.');
+            try {
+                const isMute = cmd === 'mute';
+                await sock.groupSettingUpdate(m.from, isMute ? 'announcement' : 'not_announcement');
+                return m.reply(isMute ? '🔒 Group *muted* - only admins can send messages.' : '🔓 Group *unmuted* - everyone can send messages.');
+            } catch (err) {
+                return m.reply('❌ Failed to change group setting. Make sure the bot is an admin.');
+            }
+        }
+
+        case 'mediafire':
+        case 'mf': {
+            const mfUrl = args.join(' ').trim();
+            if (!mfUrl || !mfUrl.includes('mediafire.com')) return m.reply('Usage: .mediafire <mediafire link>');
+            try {
+                await m.reply('⏳ Fetching Mediafire file...');
+                const res = await fetch(mfUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+                const html = await res.text();
+                const dlMatch = html.match(/aria-label="Download file"\s+href="([^"]+)"/) || html.match(/id="downloadButton"\s+href="([^"]+)"/);
+                const nameMatch = html.match(/<div class="filename">([^<]+)<\/div>/);
+                if (!dlMatch || !dlMatch[1]) {
+                    return m.reply('❌ Could not extract direct download link from Mediafire.');
+                }
+                const directUrl = dlMatch[1];
+                const fileName = nameMatch ? nameMatch[1].trim() : 'download';
+                await sock.sendMessage(m.from, {
+                    document: { url: directUrl },
+                    fileName: fileName,
+                    mimetype: 'application/octet-stream',
+                    caption: `📦 *Mediafire Download*\n📄 *File:* ${fileName}\n🔗 ${mfUrl}`
+                }, { quoted: m.raw });
+            } catch (err) {
+                log.error('mediafire', err);
+                return m.reply('❌ Failed to process Mediafire link.');
+            }
+            break;
+        }
+
         default:
             return;
+        }
+    } catch (cmdErr) {
+        log.error("command:" + cmd, cmdErr.stack || cmdErr.message);
+        return m.reply(`⚠️ Command *${P}${cmd}* encountered an error:\n${cmdErr.message || "An unexpected error occurred."}`);
     }
 }
 
@@ -1378,10 +2191,10 @@ async function handleMessages(sock, { messages, type }, session) {
             }
 
             m._cmd = cmdName;
-            activityLog.writeEvent(sessionId, 'command', `Command .${String(cmdName).toLowerCase()} used`, 'info', { command: String(cmdName).toLowerCase(), scope: m.isGroup ? 'group' : 'private' });
             await handleCommand(m, { args, sock, session });
         } catch (err) {
             log.error('handler', err.stack || err.message);
+        }
     }
 }
 
