@@ -1,244 +1,1191 @@
-<!doctype html>
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>亗 SHADOW LINK 亗 — Pair SHADOW MD</title>
-<meta name="description" content="Pair the 亗 SHADOW MD 亗 WhatsApp bot with your phone number. Developed by 𝐒𝚳𝚰𝐋𝚵 𝚳𝚯𝐃𝐙." />
-<meta property="og:title" content="亗 SHADOW LINK 亗" />
-<meta property="og:description" content="Pair the SHADOW MD WhatsApp bot with your phone number." />
-<meta name="theme-color" content="#020804" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800;900&family=Share+Tech+Mono&display=swap" rel="stylesheet" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080808">
+<title>亗 SHADOW LINK 亗 | Premium Pairing</title>
+<meta name="description" content="Premium SHADOW MD WhatsApp pairing portal. Developed by SMILE MODZ.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+
 <style>
-  :root{
-    --bg:#020804; --panel:rgba(4,20,10,.78); --line:rgba(0,255,120,.22);
-    --neon:#00ff88; --neon2:#7dffc4; --dim:#4f9a72; --text:#d6ffe9; --red:#ff3355; --amber:#ffc24d;
+:root {
+  --bg:#080808;
+  --card:#111111;
+  --card2:#171717;
+  --gold:#D4AF37;
+  --gold2:#F5D76E;
+  --text:#F5F1E7;
+  --muted:#96918A;
+  --line:rgba(212,175,55,.22);
+  --green:#45D483;
+  --red:#FF6464;
+}
+
+* {
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body {
+  min-height:100vh;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(212,175,55,.12),transparent 45%),
+    var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  overflow-x:hidden;
+}
+
+body::before {
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  opacity:.15;
+  background-image:
+    linear-gradient(rgba(212,175,55,.04) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(212,175,55,.04) 1px,transparent 1px);
+  background-size:45px 45px;
+}
+
+.container {
+  width:100%;
+  max-width:560px;
+  margin:auto;
+  padding:22px 18px 40px;
+  position:relative;
+  z-index:1;
+}
+
+/* NAVIGATION */
+
+nav {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 0 24px;
+  border-bottom:1px solid var(--line);
+}
+
+.brand {
+  font-family:'Playfair Display',serif;
+  font-size:19px;
+  font-weight:800;
+  color:var(--gold2);
+  letter-spacing:1px;
+}
+
+.brand span {
+  color:white;
+}
+
+.status {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid var(--line);
+  background:#15130D;
+  padding:8px 12px;
+  border-radius:30px;
+  font-size:11px;
+  color:var(--muted);
+}
+
+.dot {
+  width:8px;
+  height:8px;
+  background:#D8AD43;
+  border-radius:50%;
+  box-shadow:0 0 10px currentColor;
+}
+
+.dot.on {
+  background:var(--green);
+}
+
+.dot.off {
+  background:var(--red);
+}
+
+/* HERO */
+
+.hero {
+  text-align:center;
+  padding:45px 0 30px;
+}
+
+.logo {
+  width:76px;
+  height:76px;
+  margin:auto;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(212,175,55,.6);
+  border-radius:23px;
+  background:linear-gradient(145deg,#242015,#0D0C09);
+  box-shadow:0 0 35px rgba(212,175,55,.12);
+  font-size:38px;
+  color:var(--gold2);
+}
+
+.hero h1 {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(27px,7vw,40px);
+  margin-top:20px;
+  letter-spacing:2px;
+}
+
+.hero h1 span {
+  color:var(--gold);
+}
+
+.subtitle {
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.8;
+  margin-top:12px;
+}
+
+.subtitle b {
+  color:var(--gold2);
+}
+
+/* BADGE */
+
+.secure {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  margin-top:18px;
+  padding:8px 14px;
+  border:1px solid var(--line);
+  border-radius:30px;
+  color:var(--gold2);
+  font-size:11px;
+  letter-spacing:1px;
+  background:rgba(212,175,55,.05);
+}
+
+/* MAIN CARD */
+
+.card {
+  background:linear-gradient(145deg,#171717,#0D0D0D);
+  border:1px solid var(--line);
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 15px 55px rgba(0,0,0,.5);
+}
+
+.card-header {
+  padding:19px 20px;
+  border-bottom:1px solid var(--line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.card-header h2 {
+  font-family:'Playfair Display',serif;
+  font-size:19px;
+  color:var(--gold2);
+}
+
+.card-header span {
+  font-size:10px;
+  color:var(--muted);
+  letter-spacing:1px;
+}
+
+.card-body {
+  padding:21px;
+}
+
+.description {
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.7;
+  margin-bottom:22px;
+}
+
+label {
+  display:block;
+  font-size:11px;
+  letter-spacing:1.5px;
+  color:var(--gold2);
+  margin-bottom:10px;
+  font-weight:700;
+}
+
+.phone-row {
+  display:flex;
+  gap:9px;
+}
+
+.field {
+  height:54px;
+  display:flex;
+  align-items:center;
+  background:#090909;
+  border:1px solid #35302A;
+  border-radius:11px;
+  transition:.2s;
+}
+
+.field:focus-within {
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(212,175,55,.09);
+}
+
+.country {
+  width:116px;
+  flex-shrink:0;
+  position:relative;
+  padding:0 10px;
+  gap:7px;
+  color:var(--gold2);
+}
+
+.country select {
+  position:absolute;
+  inset:0;
+  width:100%;
+  opacity:0;
+  cursor:pointer;
+}
+
+.country select option {
+  background:#111;
+  color:white;
+}
+
+.number {
+  flex:1;
+  min-width:0;
+  padding:0 13px;
+  gap:8px;
+}
+
+.number span {
+  color:var(--gold);
+  font-size:17px;
+}
+
+input {
+  width:100%;
+  min-width:0;
+  background:transparent;
+  outline:none;
+  border:none;
+  color:white;
+  font:inherit;
+  font-size:15px;
+}
+
+input::placeholder {
+  color:#66615A;
+}
+
+.hint {
+  min-height:22px;
+  font-size:12px;
+  margin:12px 0 17px;
+  color:var(--muted);
+  overflow-wrap:anywhere;
+}
+
+.hint.success {
+  color:var(--green);
+}
+
+.hint.error {
+  color:var(--red);
+}
+
+/* BUTTONS */
+
+button {
+  cursor:pointer;
+  font-family:inherit;
+}
+
+.primary {
+  width:100%;
+  height:54px;
+  border:none;
+  border-radius:11px;
+  background:linear-gradient(110deg,#B58B25,#F5D76E,#C49A2E);
+  color:#171107;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:1.5px;
+  box-shadow:0 6px 25px rgba(212,175,55,.17);
+  transition:.2s;
+}
+
+.primary:hover {
+  filter:brightness(1.1);
+  transform:translateY(-2px);
+}
+
+.primary:active {
+  transform:scale(.98);
+}
+
+.primary:disabled {
+  opacity:.5;
+  cursor:not-allowed;
+  transform:none;
+}
+
+.secondary {
+  height:46px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#17140D;
+  color:var(--gold2);
+  font-weight:700;
+  font-size:11px;
+  letter-spacing:1px;
+}
+
+/* LOG */
+
+.log {
+  margin-top:16px;
+  font-size:12px;
+  line-height:1.8;
+  color:var(--muted);
+  overflow-wrap:anywhere;
+}
+
+.log .ok {
+  color:var(--green);
+}
+
+.log .error {
+  color:var(--red);
+}
+
+.log .warning {
+  color:var(--gold2);
+}
+
+/* PAIRING CODE */
+
+.codebox {
+  display:none;
+  margin-top:23px;
+  padding:18px 12px;
+  border:1px solid var(--line);
+  border-radius:15px;
+  background:rgba(212,175,55,.045);
+  text-align:center;
+}
+
+.code-title {
+  color:var(--gold2);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:2px;
+}
+
+.code-description {
+  color:var(--muted);
+  font-size:12px;
+  margin-top:8px;
+}
+
+.codes {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:5px;
+  margin:20px 0;
+}
+
+.cell {
+  width:36px;
+  height:49px;
+  display:grid;
+  place-items:center;
+  border:1px solid rgba(212,175,55,.6);
+  border-radius:8px;
+  background:#1A170F;
+  color:var(--gold2);
+  font-size:23px;
+  font-weight:800;
+}
+
+.dash {
+  color:var(--gold);
+  font-size:20px;
+}
+
+.timer {
+  height:3px;
+  background:#332D1D;
+  border-radius:5px;
+  overflow:hidden;
+}
+
+.timer div {
+  height:100%;
+  width:100%;
+  background:linear-gradient(90deg,#B58B25,#F5D76E);
+  transition:width 1s linear;
+}
+
+.tleft {
+  margin:10px 0 15px;
+  font-size:11px;
+  color:var(--muted);
+}
+
+.code-buttons {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+}
+
+.code-buttons button:disabled {
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+/* INSTRUCTIONS */
+
+.section-title {
+  font-family:'Playfair Display',serif;
+  font-size:21px;
+  margin:36px 0 17px;
+  color:var(--gold2);
+}
+
+.steps {
+  display:grid;
+  gap:11px;
+}
+
+.step {
+  display:flex;
+  gap:14px;
+  align-items:center;
+  padding:15px;
+  background:linear-gradient(110deg,#151515,#101010);
+  border:1px solid #29251C;
+  border-radius:13px;
+}
+
+.step-number {
+  flex-shrink:0;
+  width:37px;
+  height:37px;
+  display:grid;
+  place-items:center;
+  border:1px solid var(--gold);
+  border-radius:10px;
+  color:var(--gold2);
+  font-weight:800;
+}
+
+.step strong {
+  font-size:13px;
+  color:#F5F1E7;
+}
+
+.step p {
+  font-size:11px;
+  color:var(--muted);
+  margin-top:5px;
+  line-height:1.6;
+}
+
+/* FEATURES */
+
+.features {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:9px;
+  margin-top:25px;
+}
+
+.feature {
+  text-align:center;
+  padding:17px 5px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#12110E;
+}
+
+.feature-icon {
+  font-size:22px;
+  margin-bottom:9px;
+}
+
+.feature strong {
+  display:block;
+  color:var(--gold2);
+  font-size:11px;
+}
+
+.feature small {
+  display:block;
+  margin-top:5px;
+  font-size:9px;
+  color:var(--muted);
+}
+
+/* DEVELOPER */
+
+.developer {
+  text-align:center;
+  margin-top:43px;
+  padding:24px 10px;
+  border-top:1px solid var(--line);
+}
+
+.developer small {
+  font-size:10px;
+  color:var(--muted);
+  letter-spacing:3px;
+}
+
+.dev-name {
+  font-family:'Playfair Display',serif;
+  font-size:24px;
+  color:var(--gold2);
+  margin-top:12px;
+}
+
+.developer p {
+  font-size:11px;
+  color:var(--muted);
+  margin-top:13px;
+  line-height:1.8;
+}
+
+.footer {
+  text-align:center;
+  color:#666057;
+  font-size:10px;
+  padding-top:20px;
+}
+
+@media(max-width:380px) {
+  .country {
+    width:100px;
   }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:var(--bg);color:var(--text);font-family:"Share Tech Mono",ui-monospace,monospace;min-height:100%}
-  body{overflow-x:hidden}
-  #rain{position:fixed;inset:0;z-index:0;opacity:.35}
-  .scan{position:fixed;inset:0;z-index:1;pointer-events:none;
-    background:repeating-linear-gradient(0deg,rgba(0,0,0,.25) 0 1px,transparent 1px 3px);mix-blend-mode:multiply}
-  .vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 40%,rgba(0,0,0,.85) 100%)}
-  main{position:relative;z-index:2;max-width:560px;margin:0 auto;padding:22px 18px 40px}
-  .top{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--dim)}
-  .pill{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);padding:6px 10px;border-radius:999px;background:var(--panel)}
-  .dot{width:8px;height:8px;border-radius:50%;background:var(--amber);box-shadow:0 0 10px currentColor}
-  .dot.on{background:var(--neon);color:var(--neon)} .dot.off{background:var(--red);color:var(--red)}
-  .hero{text-align:center;padding:46px 0 26px}
-  .glyph{font-size:58px;color:var(--neon);text-shadow:0 0 12px var(--neon),0 0 40px rgba(0,255,136,.5);animation:flick 4s infinite}
-  h1{font-family:Orbitron,sans-serif;font-weight:900;font-size:clamp(20px,6.4vw,44px);letter-spacing:.04em;margin-top:12px;position:relative;white-space:nowrap;
-    color:var(--text);text-shadow:0 0 8px rgba(0,255,136,.8),0 0 30px rgba(0,255,136,.35)}
-  h1 .k{color:var(--neon)}
-  .glitch{position:relative;display:inline-block}
-  .glitch::before,.glitch::after{content:attr(data-t);position:absolute;inset:0;opacity:.7}
-  .glitch::before{color:var(--red);transform:translate(2px,0);clip-path:inset(0 0 60% 0);animation:g1 3s infinite steps(1)}
-  .glitch::after{color:#00e5ff;transform:translate(-2px,0);clip-path:inset(55% 0 0 0);animation:g2 2.6s infinite steps(1)}
-  .sub{color:var(--dim);margin-top:12px;font-size:15px}
-  .sub b{color:var(--neon2);font-weight:400}
-  .term{border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:14px;overflow:hidden;
-    box-shadow:0 0 0 1px rgba(0,255,136,.06),0 0 40px -10px rgba(0,255,136,.35)}
-  .bar{display:flex;align-items:center;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:12px;color:var(--dim)}
-  .bar i{width:10px;height:10px;border-radius:50%;display:inline-block}
-  .bar i:nth-child(1){background:#ff5f56}.bar i:nth-child(2){background:#ffbd2e}.bar i:nth-child(3){background:#27c93f}
-  .bar span{margin-left:8px}
-  .body{padding:18px}
-  .prompt{color:var(--neon);font-size:14px;margin-bottom:12px}
-  .prompt .u{color:var(--neon2)} .prompt .c{color:var(--text)}
-  label{display:block;font-size:11px;letter-spacing:.2em;color:var(--dim);margin-bottom:8px}
-  .row{display:flex;gap:8px}
-  .field{border:1px solid var(--line);background:rgba(0,0,0,.45);border-radius:10px;display:flex;align-items:center;height:50px;transition:.2s}
-  .field:focus-within{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,255,136,.18),0 0 18px rgba(0,255,136,.25)}
-  .cc{position:relative;padding:0 26px 0 12px;gap:6px;flex-shrink:0;color:var(--neon2)}
-  .cc select{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
-  .cc::after{content:"▾";position:absolute;right:10px;color:var(--dim)}
-  .num{flex:1;min-width:0;padding:0 12px}
-  .num span{color:var(--neon);margin-right:8px}
-  input{background:transparent;border:0;outline:0;color:var(--text);font:inherit;font-size:17px;width:100%;caret-color:var(--neon)}
-  input::placeholder{color:#2f6b4c}
-  .hint{min-height:20px;font-size:13px;color:var(--dim);margin:10px 0 14px}
-  .hint b{color:var(--neon2);font-weight:400} .hint.err{color:var(--red)}
-  button{font-family:Orbitron,sans-serif;font-weight:800;letter-spacing:.12em;cursor:pointer;border:0;border-radius:10px;transition:.15s}
-  .go{width:100%;height:52px;background:var(--neon);color:#001a0c;box-shadow:0 0 24px rgba(0,255,136,.55);font-size:14px}
-  .go:hover{filter:brightness(1.1);box-shadow:0 0 36px rgba(0,255,136,.8)} .go:active{transform:scale(.98)}
-  .go:disabled{opacity:.5;cursor:not-allowed}
-  .log{margin-top:16px;font-size:13px;line-height:1.7;color:var(--dim);min-height:0}
-  .log .ok{color:var(--neon)} .log .er{color:var(--red)} .log .w{color:var(--amber)}
-  .codebox{display:none;margin-top:16px;text-align:center}
-  .codes{display:flex;justify-content:center;gap:6px;align-items:center;margin:8px 0 12px}
-  .cell{width:36px;height:50px;display:grid;place-items:center;border:1px solid var(--neon);border-radius:8px;font-size:24px;color:var(--neon);
-    background:rgba(0,255,136,.06);text-shadow:0 0 10px var(--neon);box-shadow:inset 0 0 14px rgba(0,255,136,.2)}
-  .dash{color:var(--neon);font-size:22px}
-  .timer{height:3px;background:rgba(0,255,136,.12);border-radius:3px;overflow:hidden}
-  .timer div{height:100%;background:var(--neon);box-shadow:0 0 10px var(--neon);transition:width 1s linear}
-  .tleft{font-size:12px;color:var(--dim);margin:8px 0 12px}
-  .btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .ghost{height:46px;background:transparent;color:var(--neon);border:1px solid var(--neon);font-size:12px}
-  .solid{height:46px;background:var(--neon);color:#001a0c;font-size:12px;box-shadow:0 0 18px rgba(0,255,136,.45)}
-  h2{font-family:Orbitron,sans-serif;font-size:13px;letter-spacing:.3em;color:var(--dim);margin:36px 0 14px}
-  .steps{list-style:none;display:grid;gap:10px}
-  .steps li{display:flex;gap:14px;border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:14px}
-  .steps .n{flex-shrink:0;width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--neon);border-radius:8px;color:var(--neon);font-family:Orbitron}
-  .steps p{font-size:13px;color:var(--dim);margin-top:2px} .steps strong{color:var(--text);font-weight:400}
-  .perks{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:26px}
-  .perks div{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:14px 6px;text-align:center;font-size:12px}
-  .perks span{display:block;font-size:20px;color:var(--neon);text-shadow:0 0 10px var(--neon);margin-bottom:6px}
-  footer{text-align:center;margin-top:46px}
-  footer small{font-size:11px;letter-spacing:.35em;color:var(--dim)}
-  .dev{font-size:26px;margin-top:8px;color:var(--text);text-shadow:0 0 10px var(--neon),0 0 30px rgba(0,255,136,.5)}
-  footer p{font-size:11px;color:#2f6b4c;margin-top:12px}
-  .cursor{display:inline-block;width:8px;height:15px;background:var(--neon);vertical-align:-2px;animation:blink 1s steps(1) infinite}
-  @keyframes blink{50%{opacity:0}}
-  @keyframes flick{0%,19%,21%,23%,54%,56%,100%{opacity:1}20%,22%,55%{opacity:.4}}
-  @keyframes g1{0%{transform:translate(0)}20%{transform:translate(3px,-1px)}40%{transform:translate(-2px,1px)}60%{transform:translate(0)}}
-  @keyframes g2{0%{transform:translate(0)}30%{transform:translate(-3px,1px)}50%{transform:translate(2px,0)}70%{transform:translate(0)}}
+  .cell {
+    width:30px;
+    height:43px;
+    font-size:19px;
+  }
+  .hero h1 {
+    font-size:25px;
+  }
+}
 </style>
 </head>
+
 <body>
-<canvas id="rain"></canvas><div class="scan"></div><div class="vignette"></div>
-<main>
-  <div class="top"><span>亗 SHADOW MD // v1</span><span class="pill"><i class="dot" id="dot"></i><span id="stat">scanning…</span></span></div>
+<main class="container">
 
+  <!-- NAVIGATION -->
+  <nav>
+    <div class="brand">亗 SHADOW <span>LINK</span></div>
+    <div class="status">
+      <i class="dot" id="dot"></i>
+      <span id="stat">Checking...</span>
+    </div>
+  </nav>
+
+  <!-- HERO -->
   <section class="hero">
-    <div class="glyph">亗</div>
-    <h1><span class="k">亗</span> <span class="glitch" data-t="SHADOW LINK">SHADOW LINK</span> <span class="k">亗</span></h1>
-    <p class="sub">Inject <b>亗 SHADOW MD 亗</b> into your WhatsApp with just your number.<span class="cursor"></span></p>
-  </section>
+    <div class="logo">亗</div>
 
-  <section class="term">
-    <div class="bar"><i></i><i></i><i></i><span>root@shadow-link: ~/pair</span></div>
-    <div class="body">
-      <form id="form" autocomplete="on" novalidate>
-        <div class="prompt"><span class="u">root@shadow</span>:~$ <span class="c">./link --number</span></div>
-        <label for="phone">TARGET WHATSAPP NUMBER</label>
-        <div class="row">
-          <div class="field cc"><span id="flag">🇰🇪</span><span id="dialtxt">+254</span><select id="cc" aria-label="Country"></select></div>
-          <div class="field num"><span>&gt;</span><input id="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="712345678" /></div>
-        </div>
-        <p class="hint" id="hint">tip: start with + to use another country code</p>
-        <button class="go" id="go" type="submit">[REQUEST CODE]</button>
-      </form>
-      <div class="log" id="log"></div>
-      <div class="codebox" id="codebox">
-        <div class="codes" id="codes"></div>
-        <div class="timer"><div id="bar" style="width:100%"></div></div>
-        <p class="tleft" id="tleft">enter it in WhatsApp within 60s</p>
-        <div class="btns"><button class="solid" id="copy" type="button">COPY CODE</button><button class="ghost" id="again" type="button">NEW NUMBER</button></div>
-      </div>
+    <h1>SHADOW <span>LINK</span></h1>
+
+    <p class="subtitle">
+      Welcome to the premium pairing portal of
+      <b>亗 SHADOW MD 亗</b>.<br>
+      Connect your WhatsApp account securely.
+    </p>
+
+    <div class="secure">
+      ♛ &nbsp; PREMIUM PAIRING EXPERIENCE
     </div>
   </section>
 
-  <h2>// HOW TO LINK</h2>
-  <ol class="steps">
-    <li><span class="n">1</span><div><strong>Open WhatsApp</strong><p>On the phone with the number you entered.</p></div></li>
-    <li><span class="n">2</span><div><strong>Linked devices</strong><p>Tap ⋮ or Settings → Linked devices → Link a device.</p></div></li>
-    <li><span class="n">3</span><div><strong>Use phone number</strong><p>Tap “Link with phone number instead”.</p></div></li>
-    <li><span class="n">4</span><div><strong>Enter the code</strong><p>Type the 8-character code. The bot greets you once linked.</p></div></li>
-  </ol>
+  <!-- PAIRING CARD -->
+  <section class="card">
 
-  <div class="perks"><div><span>∞</span>24/7 online</div><div><span>⚡</span>Auto-reconnect</div><div><span>🔒</span>Private session</div></div>
+    <div class="card-header">
+      <h2>Connect WhatsApp</h2>
+      <span>PAIRING PORTAL</span>
+    </div>
 
-  <footer>
-    <small>DEVELOPED BY</small>
-    <div class="dev">𝐒𝚳𝚰𝐋𝚵 𝚳𝚯𝐃𝐙</div>
-    <p>亗 SHADOW LINK 亗 · pair only numbers you own</p>
+    <div class="card-body">
+
+      <p class="description">
+        Enter your WhatsApp phone number below to generate
+        your personal linking code.
+      </p>
+
+      <form id="form" autocomplete="on" novalidate>
+
+        <label for="phone">WHATSAPP PHONE NUMBER</label>
+
+        <div class="phone-row">
+
+          <div class="field country">
+            <span id="flag">🇰🇪</span>
+            <span id="dialtxt">+254</span>
+
+            <select id="cc" aria-label="Country"></select>
+          </div>
+
+          <div class="field number">
+            <span>+</span>
+            <input
+              id="phone"
+              type="tel"
+              inputmode="tel"
+              autocomplete="tel-national"
+              maxlength="20"
+              placeholder="712345678"
+              required
+            >
+          </div>
+
+        </div>
+
+        <p class="hint" id="hint">
+          Select your country and enter your WhatsApp number.
+        </p>
+
+        <button class="primary" id="go" type="submit">
+          GENERATE PAIRING CODE
+        </button>
+
+      </form>
+
+      <div class="log" id="log" aria-live="polite"></div>
+
+      <!-- CODE DISPLAY -->
+      <div class="codebox" id="codebox">
+
+        <div class="code-title">YOUR PAIRING CODE</div>
+
+        <p class="code-description">
+          Enter this code in your WhatsApp linked devices settings.
+        </p>
+
+        <div class="codes" id="codes"></div>
+
+        <div class="timer">
+          <div id="bar"></div>
+        </div>
+
+        <p class="tleft" id="tleft">
+          Your code is ready.
+        </p>
+
+        <div class="code-buttons">
+          <button class="primary" id="copy" type="button">
+            COPY CODE
+          </button>
+
+          <button class="secondary" id="again" type="button">
+            NEW NUMBER
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- INSTRUCTIONS -->
+  <h2 class="section-title">How to connect</h2>
+
+  <section class="steps">
+
+    <div class="step">
+      <div class="step-number">01</div>
+      <div>
+        <strong>Open WhatsApp</strong>
+        <p>Open WhatsApp on the phone containing your number.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">02</div>
+      <div>
+        <strong>Open Linked Devices</strong>
+        <p>Go to Settings or the three-dot menu and select Linked devices.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">03</div>
+      <div>
+        <strong>Link with Phone Number</strong>
+        <p>Select Link a device, then choose Link with phone number instead.</p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-number">04</div>
+      <div>
+        <strong>Enter Your Pairing Code</strong>
+        <p>Enter the code generated above to complete linking.</p>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- FEATURES -->
+  <h2 class="section-title">SHADOW MD Features</h2>
+
+  <section class="features">
+
+    <div class="feature">
+      <div class="feature-icon">♾️</div>
+      <strong>24/7 Hosting</strong>
+      <small>When hosted on an available server</small>
+    </div>
+
+    <div class="feature">
+      <div class="feature-icon">⚡</div>
+      <strong>Auto Reconnect</strong>
+      <small>Connection recovery</small>
+    </div>
+
+    <div class="feature">
+      <div class="feature-icon">🔒</div>
+      <strong>Private Session</strong>
+      <small>Account security</small>
+    </div>
+
+  </section>
+
+  <!-- DEVELOPER -->
+  <footer class="developer">
+
+    <small>DESIGNED & DEVELOPED BY</small>
+
+    <div class="dev-name">
+      𝐒𝚳𝚰𝐋𝚵 𝚳𝚯𝐃𝐙
+    </div>
+
+    <p>
+      亗 SHADOW LINK 亗<br>
+      Premium WhatsApp Pairing Portal
+    </p>
+
+    <div class="footer">
+      © 2026 SHADOW MD · All Rights Reserved
+    </div>
+
   </footer>
+
 </main>
 
 <script>
 (() => {
-  // ── matrix rain ──
-  const cv = document.getElementById('rain'), ctx = cv.getContext('2d');
-  const chars = 'アカサタナハマヤラワ亗01SHADOWﾊﾐﾋｰｳｼﾅﾓﾆｻﾜﾂｵﾘｱﾎﾃﾏｹﾒｴｶｷﾑﾕﾗｾﾈｽﾀﾇﾍ';
-  let cols = [], fs = 16;
-  function size(){ cv.width = innerWidth; cv.height = innerHeight; cols = Array(Math.ceil(cv.width/fs)).fill(0).map(()=>Math.random()*-50); }
-  size(); addEventListener('resize', size);
-  setInterval(() => {
-    ctx.fillStyle = 'rgba(2,8,4,0.08)'; ctx.fillRect(0,0,cv.width,cv.height);
-    ctx.font = fs + 'px monospace';
-    cols.forEach((y,i) => {
-      ctx.fillStyle = Math.random() > .97 ? '#d6ffe9' : '#00ff88';
-      ctx.fillText(chars[Math.floor(Math.random()*chars.length)], i*fs, y*fs);
-      cols[i] = y*fs > cv.height && Math.random() > .975 ? 0 : y + 1;
-    });
-  }, 55);
 
-  // ── countries ──
-  const C = [["🇰🇪","254","Kenya"],["🇹🇿","255","Tanzania"],["🇺🇬","256","Uganda"],["🇷🇼","250","Rwanda"],["🇪🇹","251","Ethiopia"],["🇳🇬","234","Nigeria"],["🇬🇭","233","Ghana"],["🇿🇦","27","South Africa"],["🇿🇲","260","Zambia"],["🇿🇼","263","Zimbabwe"],["🇲🇼","265","Malawi"],["🇪🇬","20","Egypt"],["🇮🇳","91","India"],["🇵🇰","92","Pakistan"],["🇧🇩","880","Bangladesh"],["🇮🇩","62","Indonesia"],["🇵🇭","63","Philippines"],["🇦🇪","971","UAE"],["🇸🇦","966","Saudi Arabia"],["🇬🇧","44","United Kingdom"],["🇺🇸","1","USA / Canada"],["🇧🇷","55","Brazil"]];
-  const $ = (id) => document.getElementById(id);
-  const cc = $('cc'), phone = $('phone'), hint = $('hint'), go = $('go'), log = $('log');
-  C.forEach(([f,d,n]) => { const o = document.createElement('option'); o.value = d; o.textContent = `${f} +${d} ${n}`; cc.appendChild(o); });
-  cc.onchange = () => { const c = C.find(x => x[1] === cc.value); $('flag').textContent = c[0]; $('dialtxt').textContent = '+' + c[1]; update(); };
+  const $ = id => document.getElementById(id);
 
-  function build(dial, raw){
-    raw = raw.trim(); let d = raw.replace(/\D/g,'');
-    if (raw.startsWith('+')) return d;
-    if (raw.startsWith('00')) return d.slice(2);
-    if (d.startsWith(dial) && d.length - dial.length >= 7) return d;
-    d = d.replace(/^0+/,''); return d ? dial + d : '';
-  }
-  const valid = (n) => /^[1-9]\d{7,14}$/.test(n);
+  const C = [
+    ["🇰🇪","254","Kenya"],
+    ["🇹🇿","255","Tanzania"],
+    ["🇺🇬","256","Uganda"],
+    ["🇷🇼","250","Rwanda"],
+    ["🇪🇹","251","Ethiopia"],
+    ["🇳🇬","234","Nigeria"],
+    ["🇬🇭","233","Ghana"],
+    ["🇿🇦","27","South Africa"],
+    ["🇿🇲","260","Zambia"],
+    ["🇿🇼","263","Zimbabwe"],
+    ["🇲🇼","265","Malawi"],
+    ["🇪🇬","20","Egypt"],
+    ["🇮🇳","91","India"],
+    ["🇵🇰","92","Pakistan"],
+    ["🇧🇩","880","Bangladesh"],
+    ["🇮🇩","62","Indonesia"],
+    ["🇵🇭","63","Philippines"],
+    ["🇦🇪","971","UAE"],
+    ["🇸🇦","966","Saudi Arabia"],
+    ["🇬🇧","44","United Kingdom"],
+    ["🇺🇸","1","USA / Canada"],
+    ["🇧🇷","55","Brazil"]
+  ];
+
+  const cc = $("cc");
+  const phone = $("phone");
+  const hint = $("hint");
+  const go = $("go");
+  const log = $("log");
+
+  let timer = null;
+  let timerLeft = 60;
+  let timerStarted = 0;
+  let currentCode = "";
   let touched = false;
-  function update(){
-    const n = build(cc.value, phone.value);
-    hint.className = 'hint';
-    if (touched && phone.value && !valid(n)) { hint.className = 'hint err'; hint.textContent = '! invalid number — enter the full number e.g. 0712 345 678'; }
-    else if (n && valid(n)) hint.innerHTML = 'target locked: <b>+' + n + '</b>';
-    else hint.textContent = 'tip: start with + to use another country code';
-    return n;
+
+  // COUNTRY SELECTOR
+
+  C.forEach(([flag,dial,name]) => {
+    const option = document.createElement("option");
+    option.value = dial;
+    option.textContent = `${flag} +${dial} ${name}`;
+    cc.appendChild(option);
+  });
+
+  function countryUpdate() {
+    const selected = C.find(x => x[1] === cc.value);
+    if (!selected) return;
+
+    $("flag").textContent = selected[0];
+    $("dialtxt").textContent = "+" + selected[1];
+
+    updateNumber();
   }
-  phone.oninput = update; phone.onblur = () => { touched = true; update(); };
 
-  const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-  async function line(text, cls){ const p = document.createElement('div'); if (cls) p.className = cls; log.appendChild(p);
-    for (const ch of text){ p.textContent += ch; await sleep(12); } }
+  cc.addEventListener("change",countryUpdate);
 
-  let timer, lastNumber = '';
-  function showCode(code){
-    const c = code.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
-    const box = $('codes'); box.innerHTML = '';
-    [...c].forEach((ch,i) => { if (i === 4) { const s = document.createElement('span'); s.className = 'dash'; s.textContent = '-'; box.appendChild(s); }
-      const s = document.createElement('span'); s.className = 'cell'; s.textContent = ch; box.appendChild(s); });
-    $('codebox').style.display = 'block'; $('form').style.display = 'none';
-    let left = 60; clearInterval(timer);
-    const tick = () => { $('bar').style.width = (left/60*100) + '%';
-      $('tleft').textContent = left ? `enter it in WhatsApp within ${left}s` : 'code expired — request a new one';
-      $('copy').disabled = !left; if (!left) clearInterval(timer); left--; };
-    tick(); timer = setInterval(tick, 1000);
-    $('copy').onclick = async () => { try { await navigator.clipboard.writeText(c); $('copy').textContent = 'COPIED ✓'; setTimeout(() => $('copy').textContent = 'COPY CODE', 1600); } catch {} };
+  // PHONE VALIDATION
+
+  function buildNumber(dial,raw) {
+
+    raw = raw.trim();
+
+    let digits = raw.replace(/\D/g,"");
+
+    if (raw.startsWith("+")) return digits;
+
+    if (raw.startsWith("00")) return digits.slice(2);
+
+    if (
+      digits.startsWith(dial) &&
+      digits.length - dial.length >= 7
+    ) return digits;
+
+    digits = digits.replace(/^0+/,"");
+
+    return digits ? dial + digits : "";
   }
-  $('again').onclick = () => { clearInterval(timer); $('codebox').style.display = 'none'; $('form').style.display = 'block'; log.innerHTML = ''; phone.focus(); };
 
-  $('form').onsubmit = async (e) => {
-    e.preventDefault(); touched = true; const n = update();
-    if (!valid(n)) return;
-    lastNumber = n; go.disabled = true; go.textContent = '[ RUNNING… ]'; log.innerHTML = '';
-    await line('> pairing number: +' + n);
-    await line('> please wait…');
-    await line('> 亗 𝐒𝐇𝐀𝐃𝐎𝐖 𝐌𝐃 亗');
+  function validNumber(number) {
+    return /^[1-9]\d{7,14}$/.test(number);
+  }
+
+  function updateNumber() {
+
+    const number = buildNumber(cc.value,phone.value);
+
+    hint.className = "hint";
+
+    if (touched && phone.value && !validNumber(number)) {
+
+      hint.classList.add("error");
+      hint.textContent = "Please enter a valid phone number.";
+
+    } else if (number && validNumber(number)) {
+
+      hint.classList.add("success");
+      hint.textContent = "Number: +" + number;
+
+    } else {
+
+      hint.textContent =
+        "Select your country and enter your WhatsApp number.";
+    }
+
+    return number;
+  }
+
+  phone.addEventListener("input",updateNumber);
+
+  phone.addEventListener("blur",() => {
+    touched = true;
+    updateNumber();
+  });
+
+  // LOG MESSAGES
+
+  function addLog(message,type="") {
+
+    const item = document.createElement("div");
+    item.className = type;
+    item.textContent = message;
+
+    log.appendChild(item);
+  }
+
+  // PAIRING CODE DISPLAY
+
+  function showCode(code) {
+
+    const clean = String(code)
+      .replace(/[^A-Za-z0-9]/g,"")
+      .toUpperCase();
+
+    if (!clean) throw new Error("Invalid pairing code received.");
+
+    currentCode = clean;
+
+    const codes = $("codes");
+    codes.innerHTML = "";
+
+    [...clean].forEach((char,index) => {
+
+      if (index === 4) {
+
+        const dash = document.createElement("span");
+        dash.className = "dash";
+        dash.textContent = "-";
+
+        codes.appendChild(dash);
+      }
+
+      const cell = document.createElement("span");
+      cell.className = "cell";
+      cell.textContent = char;
+
+      codes.appendChild(cell);
+    });
+
+    $("codebox").style.display = "block";
+    $("form").style.display = "none";
+
+    startTimer();
+  }
+
+  // COUNTDOWN
+
+  function startTimer() {
+
+    clearInterval(timer);
+
+    timerLeft = 60;
+    timerStarted = Date.now();
+
+    $("copy").disabled = false;
+    $("copy").textContent = "COPY CODE";
+
+    function tick() {
+
+      const elapsed = Math.floor(
+        (Date.now() - timerStarted) / 1000
+      );
+
+      timerLeft = Math.max(0,60 - elapsed);
+
+      $("bar").style.width =
+        (timerLeft / 60 * 100) + "%";
+
+      $("tleft").textContent = timerLeft
+        ? `Enter your code within ${timerLeft} seconds.`
+        : "Code expired. Request a new one.";
+
+      $("copy").disabled = timerLeft === 0;
+
+      if (timerLeft === 0) {
+        clearInterval(timer);
+      }
+    }
+
+    tick();
+    timer = setInterval(tick,1000);
+  }
+
+  // COPY CODE
+
+  $("copy").addEventListener("click",async () => {
+
+    if (!currentCode || timerLeft <= 0) return;
+
     try {
-      const res = await fetch('/pair', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ number: n }) });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(body.error || 'request failed');
-      if (body.status === 'already_linked') { await line('> +' + n + ' is already linked and online ✓', 'ok'); }
-      else if (body.status === 'code') { await line('> pairing code received ✓', 'ok'); showCode(body.code); }
-      else throw new Error('unexpected answer');
-    } catch (err) {
-      await line('! ' + (err.message || 'bot offline, try again'), 'er');
-    } finally { go.disabled = false; go.textContent = '[ EXECUTE ]'; }
-  };
 
-  // ── live status ──
-  async function status(){
-    try { const r = await fetch('/health', { cache: 'no-store' }); const b = await r.json();
-      $('dot').className = 'dot on'; $('stat').textContent = `online · ${b.online} live`; }
-    catch { $('dot').className = 'dot off'; $('stat').textContent = 'offline'; }
+      if (navigator.clipboard && window.isSecureContext) {
+
+        await navigator.clipboard.writeText(currentCode);
+
+      } else {
+
+        const temp = document.createElement("textarea");
+        temp.value = currentCode;
+        temp.style.position = "fixed";
+        temp.style.opacity = "0";
+
+        document.body.appendChild(temp);
+        temp.select();
+
+        const copied = document.execCommand("copy");
+        temp.remove();
+
+        if (!copied) throw new Error("Copy unavailable");
+      }
+
+      $("copy").textContent = "COPIED ✓";
+
+      setTimeout(() => {
+        $("copy").textContent = "COPY CODE";
+      },1600);
+
+    } catch {
+
+      $("copy").textContent = "COPY FAILED";
+    }
+  });
+
+  // NEW NUMBER
+
+  $("again").addEventListener("click",() => {
+
+    clearInterval(timer);
+
+    currentCode = "";
+
+    $("codebox").style.display = "none";
+    $("form").style.display = "block";
+
+    log.innerHTML = "";
+
+    phone.value = "";
+    touched = false;
+
+    updateNumber();
+
+    phone.focus();
+  });
+
+  // REQUEST PAIRING CODE
+
+  $("form").addEventListener("submit",async event => {
+
+    event.preventDefault();
+
+    touched = true;
+
+    const number = updateNumber();
+
+    if (!validNumber(number)) return;
+
+    go.disabled = true;
+    go.textContent = "PROCESSING...";
+
+    log.innerHTML = "";
+
+    $("codebox").style.display = "none";
+
+    addLog("Connecting to SHADOW MD...");
+    addLog("Requesting pairing code...");
+
+    try {
+
+      const response = await fetch("/pair", {
+
+        method:"POST",
+
+        headers:{
+          "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+          number:number
+        })
+
+      });
+
+      const body = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+
+        throw new Error(
+          body.error || "Pairing request failed."
+        );
+      }
+
+      if (body.status === "already_linked") {
+
+        addLog(
+          "+" + number + " is already linked.",
+          "ok"
+        );
+
+      } else if (body.status === "code") {
+
+        if (!body.code) {
+          throw new Error("No pairing code received.");
+        }
+
+        addLog("Pairing code generated successfully.","ok");
+
+        showCode(body.code);
+
+      } else {
+
+        throw new Error("Unexpected server response.");
+      }
+
+    } catch(error) {
+
+      addLog(
+        error.message || "Unable to connect to server.",
+        "error"
+      );
+
+    } finally {
+
+      go.disabled = false;
+      go.textContent = "GENERATE PAIRING CODE";
+    }
+
+  });
+
+  // LIVE SERVER STATUS
+
+  async function checkStatus() {
+
+    try {
+
+      const response = await fetch("/health",{
+        cache:"no-store"
+      });
+
+      if (!response.ok) throw new Error("Server unavailable");
+
+      const data = await response.json();
+
+      $("dot").className = "dot on";
+
+      $("stat").textContent =
+        `ONLINE · ${data.online ?? 0} LIVE`;
+
+    } catch {
+
+      $("dot").className = "dot off";
+      $("stat").textContent = "OFFLINE";
+
+    }
   }
-  status(); setInterval(status, 30000);
+
+  countryUpdate();
+
+  checkStatus();
+
+  setInterval(checkStatus,30000);
+
 })();
 </script>
+
 </body>
 </html>
